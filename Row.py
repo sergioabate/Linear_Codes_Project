@@ -3,20 +3,22 @@ class Row:
         self.elements = [] if elements is None else elements
 
     def __add__(self, other):
-        # Handle Row + Row addition
+        # Row + Row
         if isinstance(other, Row):
             if len(self.elements) != len(other.elements):
                 raise ValueError("Rows must have the same length to add.")
             return Row([a + b for a, b in zip(self.elements, other.elements)])
+        # Row + numero
         elif isinstance(other, (int, float)):
             return Row([a + other for a in self.elements])
+        # Una altra cosa
         return NotImplemented
 
-    def __radd__(self, other):
+    def __radd__(self, other): # això per quan fas <algo> + Row. Cal implementar per poder fer sum()
         # This method is called when the other operand is not a Row instance
         if isinstance(other, Row):
-            return self + other  # Use the __add__ method
-        elif other == 0:  # This handles the initial zero for sum()
+            return self + other  # Fer servir __add__
+        elif other == 0:  # zero inicial a sum()
             return self
         return NotImplemented
 

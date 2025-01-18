@@ -10,12 +10,14 @@ class Matriu:
         >>> Matriu([Row([1, 2, 3]), Row([1, 2, 3])]).shape
         (2, 3)
         """
-        self.matrix = [Row(row) if not isinstance(row, Row) else row for row in rows]
-        self.shape = (len(self.matrix), len(self.matrix[0])) if self.matrix else (0, 0)
+        # Matriu que representa la instància. 
+        self.matrix: list[list[int]] = [Row(row) if not isinstance(row, Row) else row for row in rows]
+        # Dimensions de la matriu, sent [0] nombre de files, i [1] nombre de columnes
+        self.shape: tuple[int, int] = (len(self.matrix), len(self.matrix[0])) if self.matrix else (0, 0)
 
     def __add__(self, other: 'Matriu'):
         if self.shape != other.shape:
-            raise ValueError("Matrices must have the same shape to add.")
+            raise ValueError("Les matrius han de tenir la mateixa mida per sumar-les")
         return Matriu([r1 + r2 for r1, r2 in zip(self.matrix, other.matrix)])
 
     def __mul__(self, other: 'Matriu | float | int'):
@@ -26,7 +28,7 @@ class Matriu:
         # Handle matrix multiplication (dot product)
         if isinstance(other, Matriu):
             if self.shape[1] != other.shape[0]:
-                raise ValueError(f"Incompatible shapes for matrix multiplication: {self.shape} and {other.shape}")
+                raise ValueError(f"Mides de matrius incompatibles per multiplicació: {self.shape} i {other.shape}")
             
             # Transpose the other matrix for easier column access
             other_transposed = other.transpose()
@@ -92,7 +94,7 @@ class Matriu:
 
     def swap_rows(self, row1: int, row2: int):
         if not (0 <= row1 < self.shape[0]) or not (0 <= row2 < self.shape[0]):
-            raise IndexError("Row index out of bounds.")
+            raise IndexError("Index de fila fora de límits")
         self.matrix[row1], self.matrix[row2] = self.matrix[row2], self.matrix[row1]
 
     def remove_row(self, row: int) -> 'Matriu':
@@ -101,7 +103,7 @@ class Matriu:
         L'eliminiació és `inplace`, es modifica la instància
         """
         if not (0 <= row < self.shape[0]):
-            raise IndexError("Row index out of bounds.")
+            raise IndexError("Index de fila fora de límits")
         self.matrix.pop(row)
         self.shape = (self.shape[0]-1, self.shape[1])
         return self
@@ -123,7 +125,7 @@ class Matriu:
             return self
         
         if not (0 <= pos < self.shape[0]):
-            raise IndexError("Row index out of bounds.")
+            raise IndexError("Index de fila fora de límits")
         
         self.matrix.append([])
         for row_pos in range(self.shape[0]-1, pos-1, -1):
@@ -134,9 +136,9 @@ class Matriu:
     
     def add_column(self, column: Row) -> 'Matriu':
         if not isinstance(column, Row):
-            raise ValueError("Invalid column type (should be Row despite making no sense)")
+            raise ValueError("Tipus de columna invàlid. Ha de ser de tipus Row (tot i no ser lògic)")
         if len(column) != self.shape[0]:
-            raise ValueError("Invalid length of column")
+            raise ValueError("Mida de columna invàlida")
         
         for row in range(self.shape[0]):
             self[row].add_element(column[row])
@@ -146,7 +148,7 @@ class Matriu:
     
     def get_column(self, column: int) -> 'Row':
         if not (0 <= column < self.shape[1]):
-            raise IndexError("Column index out of bounds.")
+            raise IndexError("Index de columna fora de límits")
         
         r = Row()
         for row in self:
@@ -161,7 +163,7 @@ class Matriu:
     
     def get_row(self, row: int) -> 'Row':
         if not (0 <= row < self.shape[1]):
-            raise IndexError("Row index out of bounds.")
+            raise IndexError("Index de fila fora de límits")
         
         return self[row]
     
@@ -178,9 +180,9 @@ class Matriu:
         Ambdues han de tenir el mateix nombre de files
         """
         if not isinstance(other, Matriu):
-            raise TypeError("Invalid matrix type")
+            raise TypeError("Tipus de matriu invàlida")
         if self.shape[0] != other.shape[0]:
-            raise ValueError("Number of rows of matrices do not match")
+            raise ValueError("El nombre de files de les matrius no són iguals")
         
         M = Matriu(self.matrix)
         for row in range(self.shape[0]):
@@ -198,9 +200,9 @@ class Matriu:
         Ambdues han de tenir el mateix nombre de columnes
         """
         if not isinstance(other, Matriu):
-            raise TypeError("Invalid matrix type")
+            raise TypeError("Tipus de matriu invàlida")
         if self.shape[1] != other.shape[1]:
-            raise ValueError("Number of columns of matrices do not match")
+            raise ValueError("El nombre de columnes de les matrius no són iguals")
         
         M = Matriu(self.matrix)
         for row in range(self.shape[0]):

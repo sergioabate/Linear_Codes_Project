@@ -5,6 +5,9 @@ from itertools import combinations
 from Row import Row
 from Matriu import Matriu
 
+"""
+Representació d'un codi lineal, amb les seves propietats possibles:
+"""
 @dataclass
 class LinearCode:
     """Representació d'un codi lineal"""
@@ -17,7 +20,12 @@ class LinearCode:
     d: int = 0
     
     systematic: bool = False
-    
+
+"""
+Representa una calculadora de codis lineals.
+Cal proporcionar-li una instància de `LinearCode`, que representa
+el codi lineal a resolder
+"""
 class LC_Solver():
     def __init__(self, lc: LinearCode = None):
         self.lc = lc
@@ -33,24 +41,30 @@ class LC_Solver():
         Comprova si la base és vàlida (files LI).
         Aplica reducció de gauss, comprova quines files són 
         nul·les i les elimina.
+        
+        Aquesta operació fa que totes les files siguin linealment independents,
+        que cap d'elles depengui d'una altra, o combinació d'aquestes.
         """
-        # Primer apliquem reducció
+        # Primer apliquem reducció. Fa que les files que quedin puguin ser 
+        # únicament iguals o zero.
         base = self._rrefReduction(base)
         
         # Guarda quines files s'hauran d'eliminar
         to_remove = [0] * base.shape[0]
+        
+        # Iterem totes les files
         for row1 in range(base.shape[0]):
             # Si la fila és tot 0, cal eliminar-la
             if base[row1] == Row([0]*base.shape[1]):
                 if verbose: print(f"Base[{row1}] == 0. Removing. ")
-                to_remove[row1] = 1
+                to_remove[row1] = 1 # guardem que la fila a index `row1` s'ha d'eliminar
                 continue
             # Comparem la fila actual amb les següents
             for row2 in range(row1+1, base.shape[0]):
                 # Si són iguals, cal eliminar-ne una
                 if base[row1] == base[row2]:
                     if verbose: print(f"Base[{row1}] == Base[{row2}]. Removing. ")
-                    to_remove[row2] = 1
+                    to_remove[row2] = 1 # guardem que la fila a index `row2` s'ha d'eliminar
 
         # Eliminem del final al principi perquè sinó
         # en eliminar es mouen tots els index
@@ -65,26 +79,41 @@ class LC_Solver():
 
     @classmethod
     def _rrefReduction(self, matrix: Matriu, verbose = True):
+        """
+        Donada una matriu, calcula la seva forma RREF (Reduced Row Echelon Form).
+        Això significa que per totes les files d'una matriu, el primer element d'una fila
+        es troba més a la dreta que totes les files superiors
+        Ex:
+            [0 1 1 0 1]  ->  [1 1 0 1 1]
+            [1 1 0 1 1]  ->  [0 1 1 0 1]
+            
+        S'itera cada fila `n`, verificant si l'element `n` d'aquesta fila és 1;
+            si no ho és, es busca si alguna fila té un 1 a la posició `n`, i s'intercanvien;
+            si ho és, es fa que la resta de files tinguin un 0 a aquesta posició
+        """
         for pivot in range(matrix.shape[0]):
             if pivot >= matrix.shape[1]:
                 break
             
+            if verbose: print(f"Utilitzant pivot = {pivot}")
+            
             if matrix[pivot][pivot] == 0:
-                if verbose: print(f"matrix[{pivot}, {pivot}] == 0")
+                if verbose: print(f"\tmatrix[{pivot}, {pivot}] == 0")
                 # Intercanviar per una fila que tingui un 1 a la columna 'pivot' 
                 for row in range(pivot + 1, matrix.shape[0]):
                     if matrix[row][pivot] != 0:
-                        if verbose: print(f"matrix[{row}, {pivot}] != 0: matrix[{pivot}, {pivot}] <-> matrix[{row}, {pivot}]")
+                        if verbose: print(f"\t\tmatrix[{row}, {pivot}] != 0: matrix[{pivot}, {pivot}] <-> matrix[{row}, {pivot}]")
                         matrix.swap_rows(pivot, row)
                         break
                 else:
                     # No hi ha elements amb 1 a la columna
+                    if verbose: print(f"\telements a col[{pivot}] ja són 0; continuant")
                     continue
 
             # Fer que tots els elements de la columna excepte pivot siguin 0
             for row in range(matrix.shape[0]):
                 if row != pivot and matrix[row][pivot] != 0:
-                    if verbose: print(f"matrix[{row}] = matrix[{pivot}] + matrix[{row}]")
+                    if verbose: print(f"\tmatrix[{row}] = matrix[{pivot}] + matrix[{row}]")
                     # Sumem la fila pivot a la fila on volem eliminar l'element de la columna
                     matrix[row] = matrix[row] + matrix[pivot]
 
@@ -133,7 +162,8 @@ class LC_Solver():
     @classmethod
     def _calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
-        Calcula H si la matriu és sistemàtica
+        Calcula la matriu de control, H, indiferentment de si és
+        o no sistemàtica.
         """
         G = self._calculate_base(Matriu(G))
         k, n = G.shape
@@ -287,8 +317,9 @@ if __name__=="__main__":
     #             [0,0,0,0,1,1]
     #            ])
     
-    M = Matriu([[0,1,1,1,0],
-                [0,0,1,0,1]
+    M = Matriu([
+                [0,1,1,0,1],
+                [1,1,0,1,1]
                ])
     
     code = LC_Solver.solve(M)  
@@ -296,6 +327,9 @@ if __name__=="__main__":
     print(code.H)
     print()
     print(code.G)
+    print()
+    print(code.G*code.H.transpose() % 2)
+    print(LC_Solver._rrefReduction(M))
     # print(solver.codify(list(map(int, list("011001011101")))))
     # print(solver.decodify_detect(list(map(int, list("01110001110111010111")))))
     
