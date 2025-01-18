@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from typing import Generator
 from itertools import combinations
-    
+
 from Row import Row
 from Matriu import Matriu
+
+import math
 
 """
 Representació d'un codi lineal, amb les seves propietats possibles:
@@ -11,14 +13,14 @@ Representació d'un codi lineal, amb les seves propietats possibles:
 @dataclass
 class LinearCode:
     """Representació d'un codi lineal"""
-    G: Matriu = None 
+    G: Matriu = None
     H: Matriu = None
-    
+
     n: int = 0
     k: int = 0
     M: int = 0
     d: int = 0
-    
+
     systematic: bool = False
 
 """
@@ -29,7 +31,7 @@ el codi lineal a resolder
 class LC_Solver():
     def __init__(self, lc: LinearCode = None):
         self.lc = lc
-    
+
     @classmethod
     def _calculate_base(self, base: Matriu, verbose = True) -> Matriu:
         """
@@ -37,21 +39,21 @@ class LC_Solver():
         Pot verificar que una base sigui correcte (files LI)
         o a partir d'una matriu que representa els elements d'un codi
         calcular-ne la seva base.
-        
+
         Comprova si la base és vàlida (files LI).
-        Aplica reducció de gauss, comprova quines files són 
+        Aplica reducció de gauss, comprova quines files són
         nul·les i les elimina.
-        
+
         Aquesta operació fa que totes les files siguin linealment independents,
         que cap d'elles depengui d'una altra, o combinació d'aquestes.
         """
-        # Primer apliquem reducció. Fa que les files que quedin puguin ser 
+        # Primer apliquem reducció. Fa que les files que quedin puguin ser
         # únicament iguals o zero.
         base = self._rrefReduction(base)
-        
+
         # Guarda quines files s'hauran d'eliminar
         to_remove = [0] * base.shape[0]
-        
+
         # Iterem totes les files
         for row1 in range(base.shape[0]):
             # Si la fila és tot 0, cal eliminar-la
@@ -71,7 +73,7 @@ class LC_Solver():
         for i in range(len(to_remove)-1, -1, -1):
             if to_remove[i]:
                 base.remove_row(i)
-        
+
         # Apliquem reducció de nou (en eliminar files, potser n'han quedat
         # d'iguals o no està en forma RREF)
         # self.base = self._rrefReduction(base)
@@ -86,7 +88,7 @@ class LC_Solver():
         Ex:
             [0 1 1 0 1]  ->  [1 1 0 1 1]
             [1 1 0 1 1]  ->  [0 1 1 0 1]
-            
+
         S'itera cada fila `n`, verificant si l'element `n` d'aquesta fila és 1;
             si no ho és, es busca si alguna fila té un 1 a la posició `n`, i s'intercanvien;
             si ho és, es fa que la resta de files tinguin un 0 a aquesta posició
@@ -94,12 +96,12 @@ class LC_Solver():
         for pivot in range(matrix.shape[0]):
             if pivot >= matrix.shape[1]:
                 break
-            
+
             if verbose: print(f"Utilitzant pivot = {pivot}")
-            
+
             if matrix[pivot][pivot] == 0:
                 if verbose: print(f"\tmatrix[{pivot}, {pivot}] == 0")
-                # Intercanviar per una fila que tingui un 1 a la columna 'pivot' 
+                # Intercanviar per una fila que tingui un 1 a la columna 'pivot'
                 for row in range(pivot + 1, matrix.shape[0]):
                     if matrix[row][pivot] != 0:
                         if verbose: print(f"\t\tmatrix[{row}, {pivot}] != 0: matrix[{pivot}, {pivot}] <-> matrix[{row}, {pivot}]")
@@ -118,7 +120,7 @@ class LC_Solver():
                     matrix[row] = matrix[row] + matrix[pivot]
 
         return matrix % 2
-    
+
     @classmethod
     def _calculate_H_not_systematic(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
@@ -126,19 +128,19 @@ class LC_Solver():
         Transposem G, i hi concatenem la identitat de n x n (eye(n))
         Ens quedem amb (Gt|I). Apliquem transformacions elementals
         per tal que les primeres k files de Gt estiguin esglaonades,
-        i la resta de files de Gt siguin 0. Les transformacions 
+        i la resta de files de Gt siguin 0. Les transformacions
         s'apliquen també a la part de I.
         Les últimes n-k files de la matriu I es corresponen a H.
         """
         k, n = G.shape
-        
+
         Gt = G.transpose()
         Gt_i = Gt.hstack(Matriu.eye(Gt.shape[0]))
-        
+
         for pivot in range(k):
             if Gt_i[pivot][pivot] == 0:
                 if verbose: print(f"matrix[{pivot}, {pivot}] == 0")
-                # Intercanviar per una fila que tingui un 1 a la columna 'pivot' 
+                # Intercanviar per una fila que tingui un 1 a la columna 'pivot'
                 for row in range(pivot + 1, Gt_i.shape[0]):
                     if Gt_i[row][pivot] != 0:
                         if verbose: print(f"matrix[{row}, {pivot}] != 0: matrix[{pivot}, {pivot}] <-> matrix[{row}, {pivot}]")
@@ -158,7 +160,7 @@ class LC_Solver():
         H = Gt_i.split(slice(n-k-1, n, 1), slice(k, n+k, 1)) % 2
         print(Gt_i%2)
         return self._calculate_base(H)
-    
+
     @classmethod
     def _calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
@@ -173,16 +175,16 @@ class LC_Solver():
         if G_i != Matriu.eye(k):
             return self._calculate_H_not_systematic(G, verbose)
         H = G_a.transpose().hstack(Matriu.eye((n-k)))
-        
+
         return H
-    
-    @classmethod                
+
+    @classmethod
     def _get_free_variables(self, matrix: Matriu, verbose: bool = True) -> list[int]:
         """
         Una vegada està convertida en RREF, les variables
         lliures són les columnes on cap fila hi té el 1r 1.
-        
-        Iterar cada fila, buscar el primer 1 que hi tenen i 
+
+        Iterar cada fila, buscar el primer 1 que hi tenen i
         guardar aquesta columna (variable dependent).
         Les lliures seran la resta (totes les columnes - dependents)
         >>> m = LC_Solver(3, [[0, 1, 1], [1, 0, 0]])
@@ -192,31 +194,31 @@ class LC_Solver():
         >>> m._get_free_variables(m.base, False)
         []
         """
-        n_eq, n_var = matrix.shape        
+        n_eq, n_var = matrix.shape
         pivot_columns = set()
-        
+
         for row in range(n_eq):
             for col in range(n_var):
                 if matrix[row][col] == 1:
                     if verbose: print(f"M[{row},{col}] == 1. Adding to pivot. ({pivot_columns})")
                     pivot_columns.add(col)
-                    break       
-                     
+                    break
+
         all_columns = set(range(n_var))
         free_columns = list(all_columns - pivot_columns)
         return free_columns
-    
+
     @classmethod
     def _min_hamming_distance(self, G: Matriu) -> int:
         n_cols = G.shape[1]  # Number of columns in G
-        
+
         # Iterate over subset sizes (1 to n_cols)
         for mida_comb in range(1, n_cols + 1):
             # Genera les possibles combinacions amb el nombre de columnes que va augmentant fins a `n`
             for cols in combinations(range(n_cols), mida_comb):
                 # Suma les columnes de la combinació mòdul 2
                 col_sum = sum(G.get_columns(cols)) % 2
-                
+
                 # Si la suma és 0, el nombre de columnes és el
                 # nombre d'elements en la combinació
                 if not col_sum:
@@ -229,37 +231,37 @@ class LC_Solver():
     def Hamming(self, t: int) -> LinearCode:
         """
         Es genera la H = (A|I) per després poder generar G.
-        Primer es genera el dual, G' = H = (A|I) -> H' = (I|A) = G, 
+        Primer es genera el dual, G' = H = (A|I) -> H' = (I|A) = G,
         i s'obté el codi de Hamming a partir d'aquest
         """
         lc = LinearCode()
         lc.n = 2**t-1
         lc.M = 2**lc.n
         lc.k = lc.n-t
-        
+
         lc.d = 3 # per definició
-        
+
         lc.H = Matriu([[] for _ in range(lc.n-lc.k)])
-        
+
         # Afegim les N columnes amb [1, N] valors binaris a cada col
         for col in range(lc.n, 0, -1):
-            column = list(map(int, list(bin(col).replace("0b", "").zfill(lc.n-lc.k)))) 
+            column = list(map(int, list(bin(col).replace("0b", "").zfill(lc.n-lc.k))))
             lc.H.add_column(Row(column))
-        
+
         # Calculem G, considerant que és el dual
         lc.G = self._calculate_H(lc.H, True)
-        
+
         return lc
-        
-    
-    @classmethod            
+
+
+    @classmethod
     def solve(self, matrix: Matriu, verbose = True) -> LinearCode:
         """
-        Calcula el codi lineal resultant del `LC_Solver` 
+        Calcula el codi lineal resultant del `LC_Solver`
         que conté els elements d'un codi o una base d'aquest.
         """
         lc = LinearCode()
-        
+
         lc.G = self._calculate_base(matrix)
         lc.k, lc.n = lc.G.shape
         lc.M = 2**lc.k
@@ -271,28 +273,56 @@ class LC_Solver():
             lc.H = Matriu.zeros(lc.k, lc.n)
             lc.systematic = False
         return lc
-    
+
     def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matriu, None, None]:
         if len(bits) % size != 0:
             raise ValueError(f"Length of bits ({len(bits)}) and block size ({size}) do not match")
-        
+
         for block in range(0, len(bits), size):
             yield Matriu([bits[block:block+size]])
-    
-    def parameters(self):
-        pass
-    
+
+    def parameters(self, code = None):
+        if code:
+            if isinstance(code, LinearCode):
+                e_detection = code.d - 1;
+                e_correction = int((code.d - 1)/2); # em quedo amb la part entera per sota
+
+                print("Linear Code Parameters:\n"
+                f"  - Code Length (n): {code.n}\n"
+                f"  - Code Dimension (k): {code.k}\n"
+                f"  - Code Size (M): {code.M}\n"
+                f"  - Delta (d): {code.d}\n"
+                f"  - Error Detection: {e_detection}\n"
+                f"  - Error Correction: {e_correction}")
+
+        else:
+
+            if self.lc is None:
+                raise ValueError("Code is not defined")
+
+            e_detection = self.lc.d - 1;
+            e_correction = int((self.lc.d - 1)/2); # em quedo amb la part entera per sota
+
+            print("Linear Code Parameters:\n"
+                f"  - Code Length (n): {self.lc.n}\n"
+                f"  - Code Dimension (k): {self.lc.k}\n"
+                f"  - Code Size (M): {self.lc.M}\n"
+                f"  - Delta (d): {self.lc.d}\n"
+                f"  - Error Detection: {e_detection}\n"
+                f"  - Error Correction: {e_correction}")
+
+
     def codify(self, bits: list[int]):
         if self.lc is None:
             raise ValueError("Code is not defined")
-        
+
         codes = []
         for block in self._split_bits_in_blocks(bits, self.lc.k):
             code = block*self.lc.G % 2
             codes.append("".join(map(str, code[0].elements)))
-            
+
         return "".join(codes)
-                    
+
     def decodify_detect(self, bits: list[int]):
         if self.lc is None:
             raise ValueError("Code is not defined")
@@ -305,24 +335,24 @@ class LC_Solver():
                 continue
             msgs.append("".join(map(str, sindrom[0].elements)))
         return "".join(msgs)
-        
-    
+
+
     def decodify_correct(self, bits: list[int]):
         pass
-    
+
 if __name__=="__main__":
     # M = Matriu([[0, 1, 0, 1, 1, 0],
     #             [1,0,0,0,1,1],
     #             [0,1,1,0,1,1],
     #             [0,0,0,0,1,1]
     #            ])
-    
+
     M = Matriu([
                 [0,1,1,0,1],
                 [1,1,0,1,1]
                ])
-    
-    code = LC_Solver.solve(M)  
+
+    code = LC_Solver.solve(M)
     solver = LC_Solver(code)
     print(code.H)
     print()
@@ -330,22 +360,27 @@ if __name__=="__main__":
     print()
     print(code.G*code.H.transpose() % 2)
     print(LC_Solver._rrefReduction(M))
+    solver.parameters()
+    solver2 = LC_Solver();
+    solver2.parameters(code)
+
+
     # print(solver.codify(list(map(int, list("011001011101")))))
     # print(solver.decodify_detect(list(map(int, list("01110001110111010111")))))
-    
+
     # print(code.G.split(slice(code.k), slice(2, 3, 1)))
     # print(LC_Solver._calculate_base(M))
     # print(LC_Solver._min_hamming_distance(M))
-    
+
     # code = LC_Solver.solve(M)
     # solver = LC_Solver(code)
     # print(solver.codify(list(map(int, list("10100111101001")))))
-    
+
     # print(Matriu([[], [], []]).add_column(Row([1, 1, 1])))
-    
+
     # ham3 = LC_Solver.Hamming(5)
     # print(ham3.H)
     # print()
     # print(ham3.G)
-    
+
     # print(ham3.G*(ham3.H.transpose()) % 2)
