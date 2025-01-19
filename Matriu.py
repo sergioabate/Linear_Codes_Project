@@ -4,13 +4,13 @@ class Matriu:
     def __init__(self, rows):
         """
         Create an instance of a matrix representation
-        
+
         >>> Matriu([[1, 2, 3], [1, 2, 3]]).shape
         (2, 3)
         >>> Matriu([Row([1, 2, 3]), Row([1, 2, 3])]).shape
         (2, 3)
         """
-        # Matriu que representa la instància. 
+        # Matriu que representa la instància.
         self.matrix: list[list[int]] = [Row(row) if not isinstance(row, Row) else row for row in rows]
         # Dimensions de la matriu, sent [0] nombre de files, i [1] nombre de columnes
         self.shape: tuple[int, int] = (len(self.matrix), len(self.matrix[0])) if self.matrix else (0, 0)
@@ -19,6 +19,11 @@ class Matriu:
         if self.shape != other.shape:
             raise ValueError("Les matrius han de tenir la mateixa mida per sumar-les")
         return Matriu([r1 + r2 for r1, r2 in zip(self.matrix, other.matrix)])
+
+    def __sub__(self, other: 'Matriu'):
+        if self.shape != other.shape:
+            raise ValueError("Les matrius han de tenir la mateixa mida per sumar-les")
+        return Matriu([r1 - r2 for r1, r2 in zip(self.matrix, other.matrix)])
 
     def __mul__(self, other: 'Matriu | float | int'):
         # Handle scalar multiplication
@@ -29,19 +34,19 @@ class Matriu:
         if isinstance(other, Matriu):
             if self.shape[1] != other.shape[0]:
                 raise ValueError(f"Mides de matrius incompatibles per multiplicació: {self.shape} i {other.shape}")
-            
+
             # Transpose the other matrix for easier column access
             other_transposed = other.transpose()
             result = []
             for row in self.matrix:
                 result_row = [sum(a * b for a, b in zip(row, col)) for col in other_transposed.matrix]
                 result.append(Row(result_row))
-                
+
             return Matriu(result)
-            
+
     def __mod__(self, mod):
         return Matriu([row % mod for row in self.matrix])
-    
+
     def __getitem__(self, index):
         return self.matrix[index]
 
@@ -64,10 +69,10 @@ class Matriu:
         """
         if not isinstance(other, Matriu):
             return False
-        
+
         if self.shape != other.shape:
             return False
-        
+
         for row in range(self.shape[0]):
             if self[row] != other[row]:
                 return False
@@ -118,61 +123,61 @@ class Matriu:
         """
         if not isinstance(row, Row):
             raise ValueError("Invalid row type")
-        
+
         if pos == -1:
             self.matrix.append(row)
             self.shape = (self.shape[0]+1, self.shape[1])
             return self
-        
+
         if not (0 <= pos < self.shape[0]):
             raise IndexError("Index de fila fora de límits")
-        
+
         self.matrix.append([])
         for row_pos in range(self.shape[0]-1, pos-1, -1):
             self.matrix[row_pos+1] = self.matrix[row_pos]
         self.matrix[pos] = row
         self.shape = (self.shape[0]+1, self.shape[1])
         return self
-    
+
     def add_column(self, column: Row) -> 'Matriu':
         if not isinstance(column, Row):
             raise ValueError("Tipus de columna invàlid. Ha de ser de tipus Row (tot i no ser lògic)")
         if len(column) != self.shape[0]:
             raise ValueError("Mida de columna invàlida")
-        
+
         for row in range(self.shape[0]):
             self[row].add_element(column[row])
         self.shape = (self.shape[0], self.shape[1]+1)
-        
+
         return self
-    
+
     def get_column(self, column: int) -> 'Row':
         if not (0 <= column < self.shape[1]):
             raise IndexError("Index de columna fora de límits")
-        
+
         r = Row()
         for row in self:
             r.add_element(row[column])
         return r
-    
+
     def get_columns(self, columns: list[int] | tuple[int]) -> list[Row]:
         result = []
         for col in columns:
             result.append(self.get_column(col))
         return result
-    
+
     def get_row(self, row: int) -> 'Row':
         if not (0 <= row < self.shape[1]):
             raise IndexError("Index de fila fora de límits")
-        
+
         return self[row]
-    
+
     def get_rows(self, rows: list[int] | tuple[int]) -> list[Row]:
         result = []
         for row in rows:
             result.append(self.get_row(row))
         return result
-        
+
     def hstack(self, other: 'Matriu') -> 'Matriu':
         """
         Ajunta horitzontalment la matriu `self` amb `other`.
@@ -183,27 +188,27 @@ class Matriu:
             raise TypeError("Tipus de matriu invàlida")
         if self.shape[0] != other.shape[0]:
             raise ValueError("El nombre de files de les matrius no són iguals")
-        
+
         M = Matriu(self.matrix)
         for row in range(self.shape[0]):
             M[row].add_element(other[row])
-            
+
         M.shape = (M.shape[0], M.shape[1]+other.shape[1])
         return M
-    
+
     def vstack(self, other: 'Matriu') -> 'Matriu':
         """
         Ajunta horitzontalment la matriu `self` amb `other`.
         Resultant amb M = (self).
                           (----)
-                          (other)  
+                          (other)
         Ambdues han de tenir el mateix nombre de columnes
         """
         if not isinstance(other, Matriu):
             raise TypeError("Tipus de matriu invàlida")
         if self.shape[1] != other.shape[1]:
             raise ValueError("El nombre de columnes de les matrius no són iguals")
-        
+
         M = Matriu(self.matrix)
         for row in range(self.shape[0]):
             M.add_row(other[row])
@@ -213,18 +218,18 @@ class Matriu:
     def split(self, rows: slice, columns: slice) -> 'Matriu':
         return Matriu([row[columns] for row in self.matrix[rows]])
 
-    # Classe "estàtica" de Matriu. S'utilitza Matriu.eye(N) 
+    # Classe "estàtica" de Matriu. S'utilitza Matriu.eye(N)
     # per executar-la, sense crear una instància amb Matriu()
     @classmethod
     def eye(self, N: int) -> 'Matriu':
         return self([[1 if i == j else 0 for j in range(N)] for i in range(N)])
-    
+
     @classmethod
     def ones(self, N: int, M: int = None) -> 'Matriu':
         if M is None:
             M = N
         return self([[1 for j in range(M)] for i in range(N)])
-    
+
     @classmethod
     def zeros(self, N: int, M: int = None) -> 'Matriu':
         if M is None:

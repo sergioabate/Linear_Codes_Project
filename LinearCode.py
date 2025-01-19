@@ -84,7 +84,26 @@ class LinearCode:
         return "".join(msgs)
 
     def decodify_correct(self, bits: list[int]):
-        pass
+        msgs = []
+        correct_capacity = int((self.d - 1) / 2)
+
+        # calcul de la taula de sindromes per corregir
+        liders_e = (list(error) for error in itertools.product([0, 1], repeat=self.n) if 0 < sum(error) <= correct_capacity) # erros menors que cap. corr
+        taula_sindromes = {}
+        for lider_e in liders_e: # calcula taula de síndormes
+            lider_e_matrix = Matriu([list(lider_e)])
+            sindr = self.H * lider_e_matrix.transpose() % 2
+            taula_sindromes[str(sindr)] = lider_e_matrix
+
+        for block in self._split_bits_in_blocks(bits, self.n):
+            sindrom = self.H*block.transpose() % 2
+            if sindrom:
+                correct = (block - taula_sindromes[str(sindrom)]) % 2
+                msgs.append("".join(map(str, self.get_code_elements()[str(correct)])))
+            else:
+                msgs.append("".join(map(str, self.get_code_elements()[str(block)])))
+
+        return "".join(msgs)
 
 """
 Representa una calculadora de codis lineals.
@@ -373,6 +392,8 @@ if __name__=="__main__":
     print(lincode.decodify_detect(list(map(int, list("011011000000011011011100011100000000000000")))))
     print()
     print(lincode.decodify_detect(list(map(int, list("011011000010010011011110111100000000010000")))))
+    print()
+    print(lincode.decodify_correct(list(map(int, list("011011000010010011011110111100000000010000")))))
 
     # print(code.G.split(slice(code.k), slice(2, 3, 1)))
     # print(LC_Solver._calculate_base(M))

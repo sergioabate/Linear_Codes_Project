@@ -3,7 +3,7 @@ class Row:
     Class to represent a row of numbers (float or integer)
 
     Implements basic row operations: addition/subtraction,
-    scalar multiplication, modular and boolean operations, etc. 
+    scalar multiplication, modular and boolean operations, etc.
     """
 
     def __init__(self, elements: list[int | float] = None):
@@ -41,6 +41,27 @@ class Row:
             return Row([a + other for a in self.elements])
         return NotImplemented
 
+    def __sub__(self, other):
+        """
+        Add two rows, or add a number to each element of a row
+
+        :param other: Another row or number.
+        :return: Resulting row after applying the operation.
+        >>> r1 = Row([1, 2, 3])
+        >>> r2 = Row([4, 5, 6])
+        >>> r1 + r2
+        [5 7 9]
+        >>> r1 + 2
+        [3 4 5]
+        """
+        if isinstance(other, Row):
+            if len(self.elements) != len(other.elements):
+                raise ValueError("Rows must have the same length")
+            return Row([a - b for a, b in zip(self.elements, other.elements)])
+        elif isinstance(other, (int, float)):
+            return Row([a - other for a in self.elements])
+        return NotImplemented
+
     def __radd__(self, other):
         """
         Allows right side addition (<element> + Row)
@@ -53,7 +74,7 @@ class Row:
         """
         if isinstance(other, Row):
             return self + other
-        elif other == 0: 
+        elif other == 0:
             return self
         return NotImplemented
 
@@ -83,7 +104,7 @@ class Row:
 
     def __getitem__(self, index):
         """
-        Allows accessing a specified element, or a slice of the row. 
+        Allows accessing a specified element, or a slice of the row.
 
         :param index: Index or slice.
         :return: Element or row obtained
@@ -132,7 +153,7 @@ class Row:
         '[1 2 3]'
         """
         return f"[{' '.join(map(str, self.elements))}]"
-    
+
     def __eq__(self, other) -> bool:
         """
         Compare whether two rows are equal.
@@ -147,10 +168,10 @@ class Row:
         >>> r1 == r3
         False
         """
-        if len(self) != len(other): 
+        if len(self) != len(other):
             return False
         return all([a==b for a, b in zip(self.elements, other.elements)])
-    
+
     def __bool__(self) -> bool:
         """
         Return whether any element of the Row is different to 0.
@@ -164,7 +185,7 @@ class Row:
         True
         """
         return any(e != 0 for e in self.elements)
-    
+
     def __repr__(self):
         """
         Representation of the row (same as str()).
@@ -174,7 +195,7 @@ class Row:
         '[1 2 3]'
         """
         return self.__str__()
-    
+
     def add_element(self, element):
         """
         Add an element or a list of elements to the row.
@@ -201,7 +222,7 @@ class Row:
             self.elements.extend(element)
             return self
         raise ValueError(f"Element type of Row not valid: {type(element)}")
-    
+
     def del_element(self, element):
         """
         Delete an element or a list of elements to the row.
