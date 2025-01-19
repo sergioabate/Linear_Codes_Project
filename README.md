@@ -99,7 +99,32 @@ It has two attributes:
 * `Matrix.shape:` the dimensions of the matrix, represented as a tuple. `Matrix.shape[0]` is the number of rows, whereas  `Matrix.shape[1]` is the number of columns.
 
 Apart from the _magic methods_, it also implements other methods to allow for more complex operations:
-> **Matrix.transpose()**
+<details>
+  <summary><b>Matrix.transpose()</b></summary>
+ Transposes the matrix. Returns a new `Matrix`, where the rows and columns have been swaped.
+
+ ```python 
+ m = Matrix([[1, 2], [3, 4]])
+ print(m.transpose())
+ >>> [1 3] 
+     [2 4]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.swap_rows(index1, index2)</b></summary>
+ Given two indeces, representing the row at that position, swaps both rows. The operation is inplace, modifying the inner rows of the matrix instance. 
+
+ ```python 
+ m = Matrix([[1, 2], [3, 4]])
+ m.swap_rows(0, 1)
+ print(m)
+ >>> [3 4] 
+     [1 2]
+ ```
+</details>
+
+<!-- > **Matrix.transpose()**
 > Transposes the matrix. Returns a new `Matrix`, where the rows and columns have been swaped.
 > ```python 
 > m = Matrix([[1, 2], [3, 4]])
@@ -116,11 +141,11 @@ Apart from the _magic methods_, it also implements other methods to allow for mo
 > print(m)
 > >>> [3 4] 
 >     [1 2]
-> ```
+> ``` -->
 
 ### LinearCode
 ### LC_Solver
-#### Calculating a base of a matrix
+#### Calculating a base of a matrix (G)
 Being able to obtain a base for a given matrix is a key operation in linear codes. As it has previsouly been said, a generator matrix is a base for all the codewords. Therefore, calculating the base should be the first operation performed. It is a private method of `LC_Solver`, **LC_Solver._calculate_base(Matrix)**.
 
 To do so, the matrix is first reduced into **RREF**, where for each row, its first element is at the right-most from all the rows above it. Furthermore, all the other elements in that column must also be zero. The idea is to try to have the identity matrix further to the left as possible. As a quick example:
@@ -140,6 +165,21 @@ To achieve that, we iterate each row `n = 0, ..., Matrix.shape[0]`, checking the
 Once the matrix is in RREF, we have two option: either the row is null (all elements are zero), or it is equal to another row. Therefore, to obtain the base, we simply need to delete all the null rows, as well as delete all the rows that are equal except for one. 
 
 Finally, the matrix's RREF is computed again, as due to the row deletions this form could have been lost
+
+Once the matrix is forms a base, it corresponds to the **generating matrix G**.
+
+#### Calculating a control matrix (H)
+For a given matrix, we can compute its control matrix. Before compute the control matrix, though, the given matrix must form a base, so that it is a generating matrix G. The previously seen functions allow us to do that.
+
+Once we have a generating matrix, we have two options to compute the control matrix:
+1. Perform elemental row operations to G, so that it can be written in the form `G = (I | A)`, where I is the indentity matrix of dimensions `K·K`. We can then compute H, using `H = (A^T | I)`. It requires G to be systematic.
+2. TODO : EXPLICAR EL SEGON MÈTODE
+
+It can be seen how to most generic solution is to use approach number 2, as it does not only allow to compute the control matrix for systematic G matrices, but for every G matrix.
+
+
+#### Calculating the minimum Hamming Distance (d)
+
 
 ### Testing
 
