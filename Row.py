@@ -1,16 +1,16 @@
 class Row:
     """
-    Classe per representar una fila (row) de números (reals o enters)
+    Class to represent a row of numbers (float or integer)
 
-    Implementa funcionalitats bàsiques per operar amb files:
-    sumar/restar, multiplicar per un escalar, operacións modulars, booleanes...
+    Implements basic row operations: addition/subtraction,
+    scalar multiplication, modular and boolean operations, etc. 
     """
 
     def __init__(self, elements: list[int | float] = None):
         """
-        Inicialitza una fila amb els elements donats. Si no s'especifiquen, la fila estarà buida.
+        Initialize a row instance with the given elements. If none are given, the row is empty.
 
-        :param elements: Llista d'enters o floats de la fila (opcional).
+        :param elements: List of integers or floats of a row (opcional).
         >>> r = Row([1, 2, 3])
         >>> r.elements
         [1, 2, 3]
@@ -22,10 +22,10 @@ class Row:
 
     def __add__(self, other):
         """
-        Suma dues files o suma un número a cada element de la fila.
+        Add two rows, or add a number to each element of a row
 
-        :param other: Una altra fila o un número.
-        :return: Nova fila resultant de la suma.
+        :param other: Another row or number.
+        :return: Resulting row after applying the operation.
         >>> r1 = Row([1, 2, 3])
         >>> r2 = Row([4, 5, 6])
         >>> r1 + r2
@@ -35,7 +35,7 @@ class Row:
         """
         if isinstance(other, Row):
             if len(self.elements) != len(other.elements):
-                raise ValueError("Les files han de tenir la mateixa longitud per sumar.")
+                raise ValueError("Rows must have the same length")
             return Row([a + b for a, b in zip(self.elements, other.elements)])
         elif isinstance(other, (int, float)):
             return Row([a + other for a in self.elements])
@@ -43,10 +43,10 @@ class Row:
 
     def __radd__(self, other):
         """
-        Permet sumar un altre element més una instància de Row. 
-        Necessària per utilitzar sum(Row)
+        Allows right side addition (<element> + Row)
+        Needed to use sum(Row)
 
-        :param other: L'altre operand (pot ser 0 o un número).
+        :param other: The other operand
         >>> r = Row([1, 2, 3])
         >>> sum([r, r])
         [2 4 6]
@@ -59,10 +59,10 @@ class Row:
 
     def __mul__(self, scalar: int | float) -> 'Row':
         """
-        Multiplica cada element de la fila per un escalar.
+        Multiply each element of the row by a number.
 
-        :param scalar: Escalar (int o float).
-        :return: Nova fila resultant.
+        :param scalar: Number to multiply.
+        :return: New row after the operation.
         >>> r = Row([1, 2, 3])
         >>> r * 2
         [2 4 6]
@@ -71,10 +71,10 @@ class Row:
 
     def __mod__(self, mod: int) -> 'Row':
         """
-        Aplica l'operador mòdul a cada element de la fila.
+        Apply the modulus operation to each element of the row.
 
-        :param mod: Valor del mòdul.
-        :return: Nova fila amb els residus.
+        :param mod: Modulus value.
+        :return: New row after the operation.
         >>> r = Row([10, 15, 20])
         >>> r % 6
         [4 3 2]
@@ -83,10 +83,10 @@ class Row:
 
     def __getitem__(self, index):
         """
-        Permet accedir a un element específic o a un subconjunt de la fila (slice).
+        Allows accessing a specified element, or a slice of the row. 
 
-        :param index: Índex o slice.
-        :return: Element o fila obintgut
+        :param index: Index or slice.
+        :return: Element or row obtained
         >>> r = Row([1, 2, 3, 4])
         >>> r[1]
         2
@@ -100,10 +100,10 @@ class Row:
 
     def __setitem__(self, index, value):
         """
-        Assigna un valor a un element específic de la fila.
+        Assigna a value to a given Row's element
 
-        :param index: Índex de l'element.
-        :param value: Valor a assignar.
+        :param index: Index of the element.
+        :param value: New value.
         >>> r = Row([1, 2, 3])
         >>> r[1] = 5
         >>> r
@@ -111,22 +111,22 @@ class Row:
         """
         self.elements[index] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
-        Retorna la longitud de la fila.
+        Obtain the length of the Row
 
-        :return: Longitud de la fila.
+        :return: Length of the row
         >>> r = Row([1, 2, 3])
         >>> len(r)
         3
         """
         return len(self.elements)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
-        Retorna una representació de la fila
+        Representation of the row
 
-        :return: String amb els elements de la fila.
+        :return: String with the Row's elements.
         >>> r = Row([1, 2, 3])
         >>> str(r)
         '[1 2 3]'
@@ -135,10 +135,10 @@ class Row:
     
     def __eq__(self, other) -> bool:
         """
-        Compara si dues files són iguals.
+        Compare whether two rows are equal.
 
-        :param other: La fila amb qui comparar.
-        :return: True si són iguals, False si no.
+        :param other: The other row to compare with.
+        :return: True if both are equal, False otherwise.
         >>> r1 = Row([1, 2, 3])
         >>> r2 = Row([1, 2, 3])
         >>> r3 = Row([1, 2, 4])
@@ -153,9 +153,9 @@ class Row:
     
     def __bool__(self) -> bool:
         """
-        Retorna si algun element de la fila és diferent de 0.
+        Return whether any element of the Row is different to 0.
 
-        :return: True si algun element no és zero, False si no.
+        :return: True si any element is non-zero, False otherwise.
         >>> r1 = Row([0, 0, 0])
         >>> bool(r1)
         False
@@ -167,7 +167,7 @@ class Row:
     
     def __repr__(self):
         """
-        Retorna la representació de la fila (igual a str()).
+        Representation of the row (same as str()).
 
         >>> r = Row([1, 2, 3])
         >>> repr(r)
@@ -177,9 +177,9 @@ class Row:
     
     def add_element(self, element):
         """
-        Afegeix un element o una llista d'elements a la fila.
+        Add an element or a list of elements to the row.
 
-        :param element: Element, llista o fila a afegir.
+        :param element: Element, list or Row to be added.
         >>> r = Row([1, 2])
         >>> r.add_element(3)
         [1 2 3]
@@ -200,4 +200,31 @@ class Row:
         if isinstance(element, list):
             self.elements.extend(element)
             return self
-        raise ValueError(f"Tipus d'element de la fila no vàlid: {type(element)}")
+        raise ValueError(f"Element type of Row not valid: {type(element)}")
+    
+    def del_element(self, element):
+        """
+        Delete an element or a list of elements to the row.
+
+        :param element: Element, list or Row to be added.
+        >>> r = Row([1, 2])
+        >>> r.add_element(3)
+        [1 2 3]
+        >>> r.add_element([4, 5])
+        [1 2 3 4 5]
+        >>> r.add_element(Row([6]))
+        [1 2 3 4 5 6]
+        """
+        # Si es vol afegir un número (real o enter)
+        if isinstance(element, (int, float)):
+            self.elements.append(element)
+            return self
+        # Si es vol afegir una altra Row, s'afegeixen els elements al final
+        if isinstance(element, Row):
+            self.elements.extend(element.elements)
+            return self
+        # Si es vol afegir una llista, s'afegeixen els elements al final
+        if isinstance(element, list):
+            self.elements.extend(element)
+            return self
+        raise ValueError(f"Element type of Row not valid: {type(element)}")

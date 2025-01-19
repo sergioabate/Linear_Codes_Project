@@ -3,7 +3,7 @@ from Row import Row
 class Matriu:
     def __init__(self, rows):
         """
-        Crea una instància de Matriu
+        Create an instance of a matrix representation
         
         >>> Matriu([[1, 2, 3], [1, 2, 3]]).shape
         (2, 3)
@@ -87,7 +87,7 @@ class Matriu:
     def __str__(self):
         return "\n".join(str(row) for row in self.matrix)
 
-    def transpose(self):
+    def transpose(self) -> 'Matriu':
         transposed_rows = [[self.matrix[row_idx][col_idx] for row_idx in range(self.shape[0])]
                            for col_idx in range(self.shape[1])]
         return Matriu(transposed_rows)
