@@ -23,6 +23,49 @@ class LinearCode:
 
     systematic: bool = False
 
+    def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matriu, None, None]:
+        if len(bits) % size != 0:
+            raise ValueError(f"Length of bits ({len(bits)}) and block size ({size}) do not match")
+
+        for block in range(0, len(bits), size):
+            yield Matriu([bits[block:block+size]])
+
+    def parameters(self):
+        e_detection = self.d - 1;
+        e_correction = int((self.d - 1)/2); # em quedo amb la part entera per sota
+
+        print("Linear Code Parameters:\n"
+            f"  - Code Length (n): {self.n}\n"
+            f"  - Code Dimension (k): {self.k}\n"
+            f"  - Code Size (M): {self.M}\n"
+            f"  - Delta (d): {self.d}\n"
+            f"  - Error Detection: {e_detection}\n"
+            f"  - Error Correction: {e_correction}")
+
+
+    def codify(self, bits: list[int]):
+        codes = []
+        for block in self._split_bits_in_blocks(bits, self.k):
+            code = block*self.G % 2
+            codes.append("".join(map(str, code[0].elements)))
+
+        return "".join(codes)
+
+    def decodify_detect(self, bits: list[int]):
+        msgs = []
+        for block in self._split_bits_in_blocks(bits, self.n):
+            sindrom = self.H*block.transpose() % 2
+            if sindrom:
+                msgs.append("?"*self.k)
+                continue
+            print()
+            msgs.append("".join(map(str, sindrom[0].elements)))
+        return "".join(msgs)
+
+
+    def decodify_correct(self, bits: list[int]):
+        pass
+
 """
 Representa una calculadora de codis lineals.
 Cal proporcionar-li una instància de `LinearCode`, que representa
@@ -274,99 +317,38 @@ class LC_Solver():
             lc.systematic = False
         return lc
 
-    def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matriu, None, None]:
-        if len(bits) % size != 0:
-            raise ValueError(f"Length of bits ({len(bits)}) and block size ({size}) do not match")
-
-        for block in range(0, len(bits), size):
-            yield Matriu([bits[block:block+size]])
-
-    def parameters(self, code = None):
-        if code:
-            if isinstance(code, LinearCode):
-                e_detection = code.d - 1;
-                e_correction = int((code.d - 1)/2); # em quedo amb la part entera per sota
-
-                print("Linear Code Parameters:\n"
-                f"  - Code Length (n): {code.n}\n"
-                f"  - Code Dimension (k): {code.k}\n"
-                f"  - Code Size (M): {code.M}\n"
-                f"  - Delta (d): {code.d}\n"
-                f"  - Error Detection: {e_detection}\n"
-                f"  - Error Correction: {e_correction}")
-
-        else:
-
-            if self.lc is None:
-                raise ValueError("Code is not defined")
-
-            e_detection = self.lc.d - 1;
-            e_correction = int((self.lc.d - 1)/2); # em quedo amb la part entera per sota
-
-            print("Linear Code Parameters:\n"
-                f"  - Code Length (n): {self.lc.n}\n"
-                f"  - Code Dimension (k): {self.lc.k}\n"
-                f"  - Code Size (M): {self.lc.M}\n"
-                f"  - Delta (d): {self.lc.d}\n"
-                f"  - Error Detection: {e_detection}\n"
-                f"  - Error Correction: {e_correction}")
-
-
-    def codify(self, bits: list[int]):
-        if self.lc is None:
-            raise ValueError("Code is not defined")
-
-        codes = []
-        for block in self._split_bits_in_blocks(bits, self.lc.k):
-            code = block*self.lc.G % 2
-            codes.append("".join(map(str, code[0].elements)))
-
-        return "".join(codes)
-
-    def decodify_detect(self, bits: list[int]):
-        if self.lc is None:
-            raise ValueError("Code is not defined")
-
-        msgs = []
-        for block in self._split_bits_in_blocks(bits, self.lc.n):
-            sindrom = self.lc.H*block.transpose() % 2
-            if sindrom:
-                msgs.append("?"*self.lc.k)
-                continue
-            msgs.append("".join(map(str, sindrom[0].elements)))
-        return "".join(msgs)
-
-
-    def decodify_correct(self, bits: list[int]):
-        pass
-
 if __name__=="__main__":
-    # M = Matriu([[0, 1, 0, 1, 1, 0],
-    #             [1,0,0,0,1,1],
-    #             [0,1,1,0,1,1],
-    #             [0,0,0,0,1,1]
-    #            ])
-
-    M = Matriu([
-                [0,1,1,0,1],
-                [1,1,0,1,1]
+    lincode = LinearCode()
+    lincode.G = Matriu([
+                [0,1,1,1,0,0],
+                [0,1,1,0,1,1]
                ])
+    lincode.H = Matriu([
+                [0,1,0,1,1,0],
+                [1,0,0,0,1,1],
+                [0,1,1,0,1,1],
+                [0,0,0,0,1,1]
+               ])
+    lincode.n = 6
+    lincode.k = 2
+    lincode.M = 4
+    lincode.d = 3
 
-    code = LC_Solver.solve(M)
-    solver = LC_Solver(code)
-    print(code.H)
+    #lincode = LC_Solver.solve(M)
+    #solver = LC_Solver(lincode)
+    print(lincode.H)
     print()
-    print(code.G)
+    print(lincode.G)
     print()
-    print(code.G*code.H.transpose() % 2)
-    print(LC_Solver._rrefReduction(M))
-    solver.parameters()
-    solver2 = LC_Solver();
-    solver2.parameters(code)
+    #print(lincode.G*lincode.H.transpose() % 2)
+    #print(LC_Solver._rrefReduction(M))
+    lincode.parameters()
+    #solver2 = LC_Solver();
+    #solver2.parameters(lincode)
 
 
-    # print(solver.codify(list(map(int, list("011001011101")))))
-    # print(solver.decodify_detect(list(map(int, list("01110001110111010111")))))
+    print(lincode.codify(list(map(int, list("10100111101001")))))
+    print(lincode.decodify_detect(list(map(int, list("011011000000011011011100011100000000000000")))))
 
     # print(code.G.split(slice(code.k), slice(2, 3, 1)))
     # print(LC_Solver._calculate_base(M))
