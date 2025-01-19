@@ -82,7 +82,9 @@ class LinearCode:
             f"  - Error Correction: {e_correction}")
 
 
-    def codify(self, bits: list[int]):
+    def codify(self, bits: list[int] | str):
+        if isinstance(bits, str):
+            bits = list(map(int, bits))
         codes = []
         for block in self._split_bits_in_blocks(bits, self.k):
             code = block*self.G % 2
@@ -90,7 +92,9 @@ class LinearCode:
 
         return "".join(codes)
 
-    def decodify_detect(self, bits: list[int]):
+    def decodify_detect(self, bits: list[int] | str):
+        if isinstance(bits, str):
+            bits = list(map(int, bits))
         msgs = []
         for block in self._split_bits_in_blocks(bits, self.n):
             sindrom = self.H*block.transpose() % 2
@@ -101,7 +105,10 @@ class LinearCode:
 
         return "".join(msgs)
 
-    def decodify_correct(self, bits: list[int]):
+    def decodify_correct(self, bits: list[int] | str):
+        if isinstance(bits, str):
+            bits = list(map(int, bits))
+            
         msgs = []
         correct_capacity = int((self.d - 1) / 2)
 
@@ -116,8 +123,13 @@ class LinearCode:
         for block in self._split_bits_in_blocks(bits, self.n):
             sindrom = self.H*block.transpose() % 2
             if sindrom:
-                correct = (block - taula_sindromes[str(sindrom)]) % 2
-                msgs.append("".join(map(str, self.get_code_elements()[str(correct)])))
+                error = taula_sindromes.get(str(sindrom))
+                if error is None:
+                    print(f"Warning! Block {block} has more errors than the linear code's correct capabilites")
+                    msgs.append("?"*self.k)
+                else:
+                    correct = (block - error) % 2
+                    msgs.append("".join(map(str, self.get_code_elements()[str(correct)])))
             else:
                 msgs.append("".join(map(str, self.get_code_elements()[str(block)])))
 
@@ -364,16 +376,16 @@ if __name__=="__main__":
     lincode.parameters()
     #solver2 = LC_Solver();
     #solver2.parameters(lincode)
-
+    
     print(lincode.get_code_elements())
     print()
-    print(lincode.codify(list(map(int, list("10100111101001")))))
+    print(lincode.codify("10100111101001"))
     print()
-    print(lincode.decodify_detect(list(map(int, list("011011000000011011011100011100000000000000")))))
+    print(lincode.decodify_detect("011011000000011011011100011100000000000000"))
     print()
-    print(lincode.decodify_detect(list(map(int, list("011011000010010011011110111100000000010000")))))
+    print(lincode.decodify_detect("011011000010010011011110111100000000010000"))
     print()
-    print(lincode.decodify_correct(list(map(int, list("011011000010010011011110111100000000010000")))))
+    print(lincode.decodify_correct("011011000010010011011110111100000000010000"))
 
     
 
