@@ -173,13 +173,33 @@ For a given matrix, we can compute its control matrix. Before compute the contro
 
 Once we have a generating matrix, we have two options to compute the control matrix:
 1. Perform elemental row operations to G, so that it can be written in the form `G = (I | A)`, where I is the indentity matrix of dimensions `K·K`. We can then compute H, using `H = (A^T | I)`. It requires G to be systematic.
-2. TODO : EXPLICAR EL SEGON MÈTODE
+2. Find all the equations that satisfy: `(λ1...λk) · G = x1...Xn`, where `x1...Xn` is an element of the finite field `F2^n`. 
 
-It can be seen how to most generic solution is to use approach number 2, as it does not only allow to compute the control matrix for systematic G matrices, but for every G matrix.
+It can be seen how the most generic solution is to use approach number 2, as it does not only allow to compute the control matrix for systematic G matrices, but for every G matrix. It is true, tough, that it is computationally more expensive, as more matrix transformations are required.
+
+The implementation is done using both approaches: we first try to write the generating matrix in its systematic form and, if possible, compute H directly; otherwise, the second approach is performed.
+
+<details>
+  <summary><b>Matrix.calculate_H(Matrix)</b></summary>
+
+Given a Matrix, which corresponds to the generating matrix, it first computes its base. This is to make sure all rows are linearly independent. In this step it is also attempted to write `G = (I | A)`, so that the H matrix can easily be computed. If it is not the following approach is used:
+
+  <details>
+    <summary><b>Matrix._calculate_H_not_systematic(Matrix)</b></summary>
+  
+  The generating matrix is transposed, and the identity matrix of size `NxN` is added to its right side, resulting in `G^t | I`. 
+  Elemental row operations are performed to this new matrix until its first `k` rows are in RREF: the first element of each row is at the left-most side, and all the other values in this column must be 0.
+
+  Finally, the control matrix H can be obtained taking the last `n-k` rows and the last `n` columns of this rows.
+
+  </details>
+</details>
+
 
 
 #### Calculating the minimum Hamming Distance (d)
 
+#### Solving a linear code
 
 ### Testing
 
