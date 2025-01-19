@@ -273,7 +273,7 @@ class LC_Solver():
         return self._calculate_base(H)
 
     @classmethod
-    def _calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
+    def calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
         Calcula la matriu de control, H, indiferentment de si és
         o no sistemàtica.
@@ -332,7 +332,7 @@ class LC_Solver():
             lc.H.add_column(Row(column))
 
         # Calculem G, considerant que és el dual
-        lc.G = self._calculate_H(lc.H, True)
+        lc.G = self.calculate_H(lc.H, True)
 
         return lc
 
@@ -348,7 +348,7 @@ class LC_Solver():
         lc.G = self._calculate_base(matrix)
         lc.k, lc.n = lc.G.shape
         lc.M = 2**lc.k
-        lc.H = self._calculate_H(lc.G, verbose)
+        lc.H = self.calculate_H(lc.G, verbose)
         lc.d = self._min_hamming_distance(lc.H)
         return lc
 
@@ -387,7 +387,16 @@ if __name__=="__main__":
     print()
     print(lincode.decodify_correct("011011000010010011011110111100000000010000"))
 
+    m2 = Matriu([
+        [0,0,0,0,0,0],
+        [0,1,1,0,1,1],
+        [0,1,1,1,0,0],
+        [0,0,0,1,1,1]
+    ])
     
+    lc = LC_Solver.solve(m2)
+    print(lc.get_code_elements())
+    print(lc.G)
 
     # print(code.G.split(slice(code.k), slice(2, 3, 1)))
     # print(LC_Solver._calculate_base(M))

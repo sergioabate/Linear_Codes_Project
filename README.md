@@ -200,9 +200,23 @@ Given a Matrix, which corresponds to the generating matrix, it first computes it
 #### Calculating the minimum Hamming Distance (d)
 
 #### Solving a linear code
+A main method is given, **LC_Solver.solve(Matrix)**. This method allows to solve a given matrix, obtaining its linear code.
+
+The main characteristics of this method is that any matrix can be provided, and it needn't be in the correct "generating matrix format" (that is, being a base or linearly independant matrix). This allows user to, for example, provide all the codewords from a linear code, and obtain their generating and control matrices.
+
+This method returns an instance of `LinearCode`, with all its attributes defined, making it quick and easy to obtain a linear code to codify and decodify with.
+
+The implementation of this method relies on all the previously seen functions of the `LC_Solver` class
 
 ### Testing
+<!-- s'han utilitzat doctests en les funcions per verificar les funcionalitats -->
 
 ## Usage 
 
 ## Examples
+<!-- Un exemple de LC_Solver.solve() amb una matriu que representi una G amb format correcte -->
+<!-- Un exemple de LC_Solver.solve() amb una matriu que tingui els elements d'un codi -->
+<!-- Exemple de codificació -->
+<!-- Exemple de descodificació i detecció -->
+<!-- Exemple de descodificació i correció -->
+<!-- Exemple de descodificació i correció amb més errors dels que pot corregir -->
