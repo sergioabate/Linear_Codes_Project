@@ -5,7 +5,7 @@ from itertools import combinations
 from Row import Row
 from Matriu import Matriu
 
-import math
+import itertools
 
 """
 Representació d'un codi lineal, amb les seves propietats possibles:
@@ -22,6 +22,27 @@ class LinearCode:
     d: int = 0
 
     systematic: bool = False
+
+    def get_code_elements(self):
+        """
+        Genera tots els elements del codi en un diccionari.
+        És útil per decodificar en blocs.
+
+        Ho guarda d'aquesta manera:
+
+        decoded         | coded
+        '[0 0 0 0 0 0]'   (0, 0)
+        ...
+        """
+        blocs = list(itertools.product([0, 1], repeat = self.k))
+        elements = {}
+
+        for bloc in blocs:
+            bloc_matrix = Matriu([list(bloc)])
+            code_element = bloc_matrix * self.G % 2
+            elements[str(code_element)] = bloc
+
+        return elements
 
     def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matriu, None, None]:
         if len(bits) % size != 0:
@@ -57,11 +78,10 @@ class LinearCode:
             sindrom = self.H*block.transpose() % 2
             if sindrom:
                 msgs.append("?"*self.k)
-                continue
-            print()
-            msgs.append("".join(map(str, sindrom[0].elements)))
-        return "".join(msgs)
+            else:
+                msgs.append("".join(map(str, self.get_code_elements()[str(block)])))
 
+        return "".join(msgs)
 
     def decodify_correct(self, bits: list[int]):
         pass
@@ -346,9 +366,13 @@ if __name__=="__main__":
     #solver2 = LC_Solver();
     #solver2.parameters(lincode)
 
-
+    print(lincode.get_code_elements())
+    print()
     print(lincode.codify(list(map(int, list("10100111101001")))))
+    print()
     print(lincode.decodify_detect(list(map(int, list("011011000000011011011100011100000000000000")))))
+    print()
+    print(lincode.decodify_detect(list(map(int, list("011011000010010011011110111100000000010000")))))
 
     # print(code.G.split(slice(code.k), slice(2, 3, 1)))
     # print(LC_Solver._calculate_base(M))
