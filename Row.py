@@ -43,16 +43,16 @@ class Row:
 
     def __sub__(self, other):
         """
-        Add two rows, or add a number to each element of a row
+        Subtract two rows, or subtract a number to each element of a row
 
         :param other: Another row or number.
         :return: Resulting row after applying the operation.
         >>> r1 = Row([1, 2, 3])
         >>> r2 = Row([4, 5, 6])
-        >>> r1 + r2
-        [5 7 9]
-        >>> r1 + 2
-        [3 4 5]
+        >>> r1 - r2
+        [-3 -3 -3]
+        >>> r1 - 2
+        [-1 0 1]
         """
         if isinstance(other, Row):
             if len(self.elements) != len(other.elements):

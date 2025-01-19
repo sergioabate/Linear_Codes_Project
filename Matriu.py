@@ -22,7 +22,7 @@ class Matriu:
 
     def __sub__(self, other: 'Matriu'):
         if self.shape != other.shape:
-            raise ValueError("Les matrius han de tenir la mateixa mida per sumar-les")
+            raise ValueError("Les matrius han de tenir la mateixa mida per restar-les")
         return Matriu([r1 - r2 for r1, r2 in zip(self.matrix, other.matrix)])
 
     def __mul__(self, other: 'Matriu | float | int'):
