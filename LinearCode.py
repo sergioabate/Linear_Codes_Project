@@ -336,8 +336,8 @@ class LC_Solver():
             [0 1 1 0 1]  ->  [1 1 0 1 1]
             [1 1 0 1 1]  ->  [0 1 1 0 1]
 
-        Each row "n" is iterated, checking if the element ‘n’ of this row is 1:
-            if it is not, look for whether any row has a 1 at position ‘n’, and swap them;
+        Each row "n" is iterated, checking if the element 'n' of this row is 1:
+            if it is not, look for whether any row has a 1 at position 'n', and swap them;
             if it is, the rest of the rows are made to have a 0 in this position.
 
         :param matrix: The matrix to be reduced.
@@ -442,20 +442,10 @@ class LC_Solver():
 
         >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
         >>> H = LC_Solver.calculate_H(G, verbose=False)
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        G matrix:
-        [1 0 1 1]
-        [0 1 1 0]
-
         >>> H.matrix
         [[1 1 1 0], [1 0 0 1]]
         """
-        G = self._calculate_base(Matriu(G))
-        print("G matrix:")
-        print(G)
+        G = self._calculate_base(Matriu(G), verbose)
         k, n = G.shape
         # G = (I|A)?
         G_i = G.split(slice(k), slice(k))
@@ -467,14 +457,16 @@ class LC_Solver():
         return H
 
     @classmethod
-    def _min_hamming_distance(self, G: Matriu) -> int:
+    def _min_hamming_distance(self, M: Matriu) -> int:
         """
         Computes the minimum Hamming distance of a linear code from its generator matrix G.
 
-        The minimum Hamming distance is the smallest number of columns in G whose sum (mod 2)
+        The minimum Hamming distance is the smallest number of columns in M whose sum (mod 2)
         results in the zero vector.
+        
+        It is usually used to compute the distance parameter, d, of a linear code given the H matrix
 
-        :param G: Generator matrix of the linear code.
+        :param M: Matrix to compute the hamming distance.
         :return: Minimum Hamming distance.
 
         >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
@@ -482,16 +474,18 @@ class LC_Solver():
         2
         >>> G = Matriu([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
         >>> LC_Solver._min_hamming_distance(G)
-        3
+        4
         """
-        n_cols = G.shape[1]  # Number of columns in G
+        n_cols = M.shape[1]  # Number of columns in G
 
         # Iterate over subset sizes (1 to n_cols)
         for mida_comb in range(1, n_cols + 1):
             # Genera les possibles combinacions amb el nombre de columnes que va augmentant fins a `n`
+            # Si tenim 3 columnes i agrupem de 2 en 2: [(0, 1), (0, 2), (1, 2)]
+            # Indicaria que s'han de sumar les columnes 0 i 1, 0 i 2, i 1 i 2
             for cols in combinations(range(n_cols), mida_comb):
                 # Suma les columnes de la combinació mòdul 2
-                col_sum = sum(G.get_columns(cols)) % 2
+                col_sum = sum(M.get_columns(cols)) % 2
 
                 # Si la suma és 0, el nombre de columnes és el
                 # nombre d'elements en la combinació
@@ -505,7 +499,7 @@ class LC_Solver():
     def Hamming(self, t: int) -> LinearCode:
         """
         H = (A|I) is generated so that G can be generated later.
-        First the dual is generated, G‘ = H = (A|I) -> H’ = (I|A) = G,
+        First the dual is generated, G' = H = (A|I) -> H' = (I|A) = G,
         and the Haming code is obtained from it.
 
         :param t: The Hamming parameter (defines the number of parity bits).
@@ -545,24 +539,7 @@ class LC_Solver():
 
         >>> lc_solver = LC_Solver()
         >>> matrix = Matriu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        >>> lc = lc_solver.solve(matrix)
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        Utilitzant pivot = 2
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        Utilitzant pivot = 2
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        Utilitzant pivot = 2
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        Utilitzant pivot = 2
-        G matrix:
-        [1 0 0]
-        [0 1 0]
-        [0 0 1]
-
+        >>> lc = lc_solver.solve(matrix, verbose=False)
         >>> lc.G.shape
         (3, 3)
         >>> lc.H.shape
@@ -576,7 +553,7 @@ class LC_Solver():
         """
         lc = LinearCode()
 
-        lc.G = self._calculate_base(matrix)
+        lc.G = self._calculate_base(matrix, verbose)
         lc.k, lc.n = lc.G.shape
         lc.M = 2**lc.k
         lc.H = self.calculate_H(lc.G, verbose)
