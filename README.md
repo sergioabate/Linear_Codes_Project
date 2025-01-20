@@ -193,6 +193,20 @@ This implementation has been done as a method of the class.
 
  This method only calculates the code elements in case the instance itself does not contain them. Otherwise they are not recalculated.
 
+```python
+m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+lincode = LinearCode()
+lincode.G = m1
+lincode.H = m2
+lincode.parameters()
+>>> .
+    .
+    .
+elements = lincode.get_code_elements()
+print(elements)
+>>> {'[0 0 0 0 0 0]': (0, 0), '[0 1 1 0 1 1]': (0, 1), '[0 1 1 1 0 0]': (1, 0), '[0 0 0 1 1 1]': (1, 1)}
+```
 </details>
 
 ### Calculating the code parameters
@@ -226,7 +240,6 @@ To calculate all the parameters, the following method has been used:
      - Delta (d): 3
      - Error Detection: 2
      - Error Correction: 1
- """
  ```
 </details>
 
@@ -240,6 +253,20 @@ For this, the following method is used:
  From a `list` or `string` of bits corresponding to the message, it is splitted into blocks of size `k` with the `_split_bits_in_blocks()` method, and each of them is multiplied by the matrix G. Then, the encoded blocks are concatenated in a `string` which is returned.
 
 The `_split_bits_in_blocks()` method is used to split the message into blocks.
+
+```python
+m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+lincode = LinearCode()
+lincode.G = m1
+lincode.H = m2
+lincode.parameters()
+>>> .
+    .
+    .
+print(lincode.codify("10100111101001"))
+>>> 011100011100011011000111011100011100011011
+```
 </details>
 
 ### Decoding messages and detecting/correcting errors
@@ -260,6 +287,20 @@ Two methods have been developed in this section: one for decoding and detecting 
  From a `list` or `string` of bits corresponding to the encoded message, the message is split into blocks of size `n` with the `_split_bits_in_blocks()` method, and the syndrome is calculated for each of them. In case there are no errors, the block is decoded from the dictionary of code elements, and the block is concatenated into the resulting `string`.
 
  In case of errors, the `?` character is concatenated `?` `k` times.
+
+ ```python
+m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+lincode = LinearCode()
+lincode.G = m1
+lincode.H = m2
+lincode.parameters()
+>>> .
+    .
+    .
+print(lincode.decodify_detect("011011000010010011011110111100000000010000"))
+>>> 01????????00??
+```
 </details>
 
 <details>
@@ -269,6 +310,20 @@ Two methods have been developed in this section: one for decoding and detecting 
  To do so, a similar procedure is followed as for obtaining the elements of the code. The possible leaders of weight less or equal to the `corrective capacity` are generated with the `itertools` library, and each one is multiplied by the control matrix H. Then, the table is stored in a dictionary, where the key is the syndrome, and the value is the leader.
 
 In addition, unlike the previous method, if an error is detected, the syndrome is looked up in the syndromes table and the corresponding leader is subtracted from the block to be decoded.
+
+ ```python
+m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+lincode = LinearCode()
+lincode.G = m1
+lincode.H = m2
+lincode.parameters()
+>>> .
+    .
+    .
+print(lincode.decodify_detect("011011000010010011011110111100000000010000"))
+>>> 01000110100000
+```
 </details>
 
 ### LC_Solver
