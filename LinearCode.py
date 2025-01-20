@@ -7,12 +7,15 @@ from Matriu import Matriu
 
 import itertools
 
-"""
-Representació d'un codi lineal, amb les seves propietats possibles:
-"""
 @dataclass
 class LinearCode:
-    """Representació d'un codi lineal"""
+    """
+    Class to represent a Linear Code, consisting of the
+    generator matrix G, the control matrix H, and the code parameters.
+
+    It implements methods to get all code elements, split messages into blocks,
+    compress parameters, encode, decode and detect errors, and decode and correct errors.
+    """
     G: Matriu = None
     H: Matriu = None
 
@@ -26,19 +29,36 @@ class LinearCode:
 
     def get_code_elements(self) -> dict[str,str]:
         """
-        Genera tots els elements del codi en un diccionari.
-        És útil per decodificar en blocs.
+        Generates and returns a dictionary corresponding to the code elements (codewords) of the linear code.
 
-        Ho guarda d'aquesta manera:
+        The code elements are calculated using the generator matrix G and
+        the possible message blocks. The first time the method is called,
+        it computes the code elements and stores them for later use.
 
+        He stores them like this:
         decoded         | coded
         '[0 0 0 0 0 0]'   (0, 0)
-        ...
+
+        :return: A dictionary where the keys are the code elements (as strings)
+                and the values are the corresponding message blocks.
+
+        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> lincode = LinearCode()
+        >>> lincode.G = m1
+        >>> lincode.H = m2
+        >>> lincode.n = 6
+        >>> lincode.k = 2
+        >>> lincode.M = 4
+        >>> lincode.d = 3
+        >>> elements = lincode.get_code_elements()
+        >>> print(elements)
+        {'[0 0 0 0 0 0]': (0, 0), '[0 1 1 0 1 1]': (0, 1), '[0 1 1 1 0 0]': (1, 0), '[0 0 0 1 1 1]': (1, 1)}
         """
         # Generem els codis únicament la primera vegada
         if self.code_elements is not None:
             return self.code_elements
-        
+
         blocs = list(itertools.product([0, 1], repeat = self.k))
         elements = {}
 
@@ -46,12 +66,29 @@ class LinearCode:
             bloc_matrix = Matriu([list(bloc)])
             code_element = bloc_matrix * self.G % 2
             elements[str(code_element)] = bloc
-            
+
         self.code_elements = elements
 
         return elements
 
     def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matriu, None, None]:
+        """
+        Splits a list of bits into blocks of a specified size.
+
+        This method raises a ValueError if the length of the bits is not divisible by the block size.
+
+        :param bits: List of bits to be split into blocks.
+        :param size: The size of each block.
+        :return: A generator that yields Matriu instances, each containing a block of bits.
+
+        >>> code = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+        >>> list(code._split_bits_in_blocks([1, 0, 1, 1, 0, 0], 3))
+        [[[1, 0, 1]], [[1, 0, 0]]]
+        >>> list(code._split_bits_in_blocks([1, 0, 1], 2))
+        Traceback (most recent call last):
+            ...
+        ValueError: Length of bits (3) and block size (2) do not match
+        """
         if len(bits) % size != 0:
             raise ValueError(f"Length of bits ({len(bits)}) and block size ({size}) do not match")
 
@@ -59,30 +96,65 @@ class LinearCode:
             yield Matriu([bits[block:block+size]])
 
     def parameters(self):
+        """
+        Prints the parameters of the Linear Code based on the generator matrix G,
+        the control matrix H, and other parameters.
+
+        >>> code = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+        >>> code.parameters()
+        Linear Code Parameters:
+        - Code Length (n): 3
+        - Code Dimension (k): 3
+        - Code Size (M): 8
+        - Delta (d): 3
+        - Error Detection: 2
+        - Error Correction: 1
+        """
         if self.G is None or self.H is None:
             raise ValueError("Either G or H matrix have not been defined")
-        
+
         # Maybe the LinearCode was not obtained through LC_Solver,
         # but instead created with lc = LinearCode(), lc.G = ... lc.H = ...
         if self.d is None:
             self.d = LC_Solver._min_hamming_distance(self.H)
-    
+
         self.k, self.n = self.G.shape
         self.M = 2**self.k
-        
+
         e_detection = self.d - 1
         e_correction = int((self.d - 1)/2)
 
         print("Linear Code Parameters:\n"
-            f"  - Code Length (n): {self.n}\n"
-            f"  - Code Dimension (k): {self.k}\n"
-            f"  - Code Size (M): {self.M}\n"
-            f"  - Delta (d): {self.d}\n"
-            f"  - Error Detection: {e_detection}\n"
-            f"  - Error Correction: {e_correction}")
+            f"- Code Length (n): {self.n}\n"
+            f"- Code Dimension (k): {self.k}\n"
+            f"- Code Size (M): {self.M}\n"
+            f"- Delta (d): {self.d}\n"
+            f"- Error Detection: {e_detection}\n"
+            f"- Error Correction: {e_correction}")
 
 
     def codify(self, bits: list[int] | str):
+        """
+        Encodes a list of bits (or a bit string) into a linear code using the generator matrix G.
+
+        The bits are split into blocks of size k, then each block is multiplied by the generator matrix
+        G modulo 2, and the resulting encoded blocks are concatenated into the final encoded string.
+
+        :param bits: A list of bits or a string of bits to encode.
+        :return: A string representing the encoded bits.
+
+        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> lincode = LinearCode()
+        >>> lincode.G = m1
+        >>> lincode.H = m2
+        >>> lincode.n = 6
+        >>> lincode.k = 2
+        >>> lincode.M = 4
+        >>> lincode.d = 3
+        >>> print(lincode.codify("10100111101001"))
+        011100011100011011000111011100011100011011
+        """
         if isinstance(bits, str):
             bits = list(map(int, bits))
         codes = []
@@ -93,6 +165,29 @@ class LinearCode:
         return "".join(codes)
 
     def decodify_detect(self, bits: list[int] | str):
+        """
+        Decodes a list of bits (or a bit string) into the original message while detecting errors.
+
+        The bits are split into blocks of size n, and for each block, the syndrome is calculated
+        using the control matrix H. If the syndrome is non-zero, the block is marked as erroneous
+        with '?' symbols. Otherwise, the corresponding original message is retrieved.
+
+        :param bits: A list of bits or a string of bits to decode.
+        :return: A string representing the decoded message, with '?' for erroneous blocks.
+
+        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> lincode = LinearCode()
+        >>> lincode.G = m1
+        >>> lincode.H = m2
+        >>> lincode.n = 6
+        >>> lincode.k = 2
+        >>> lincode.M = 4
+        >>> lincode.d = 3
+        >>> print(lincode.decodify_detect("011011000000011011011100011100000000000000"))
+        01000110100000
+        """
+
         if isinstance(bits, str):
             bits = list(map(int, bits))
         msgs = []
@@ -106,16 +201,38 @@ class LinearCode:
         return "".join(msgs)
 
     def decodify_correct(self, bits: list[int] | str):
+        """
+        Decodes a list of bits (or a bit string) into the original message, correcting errors within the code's capacity.
+
+        This method splits the bits into blocks of size n. For each block, the syndrome is calculated using the control
+        matrix H. If the syndrome indicates an error, it uses a precomputed syndrome table to correct it. Blocks with
+        errors exceeding the code's capacity are marked with '?'.
+
+        :param bits: A list of bits or a string of bits to decode.
+        :return: A string representing the decoded message, with '?' for uncorrectable blocks.
+
+        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> lincode = LinearCode()
+        >>> lincode.G = m1
+        >>> lincode.H = m2
+        >>> lincode.n = 6
+        >>> lincode.k = 2
+        >>> lincode.M = 4
+        >>> lincode.d = 3
+        >>> print(lincode.decodify_correct("011011000010010011011110111100000000010000"))
+        01000110100000
+        """
         if isinstance(bits, str):
             bits = list(map(int, bits))
-            
+
         msgs = []
         correct_capacity = int((self.d - 1) / 2)
 
         # calcul de la taula de sindromes per corregir
         liders_e = (list(error) for error in itertools.product([0, 1], repeat=self.n) if 0 < sum(error) <= correct_capacity) # erros menors que cap. corr
         taula_sindromes = {}
-        for lider_e in liders_e: # calcula taula de síndormes
+        for lider_e in liders_e: # calcula taula de síndromes
             lider_e_matrix = Matriu([list(lider_e)])
             sindr = self.H * lider_e_matrix.transpose() % 2
             taula_sindromes[str(sindr)] = lider_e_matrix
@@ -135,29 +252,47 @@ class LinearCode:
 
         return "".join(msgs)
 
-"""
-Representa una calculadora de codis lineals.
-Cal proporcionar-li una instància de `LinearCode`, que representa
-el codi lineal a resolder
-"""
 class LC_Solver():
+    """
+    Represents a linear code calculator. It must be provided with an instance of "LinearCode",
+    which represents the linear code to be solved.
+
+    Attributes:
+        lc (LinearCode): An instance of the LinearCode class.
+
+    Example:
+    >>> lc = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+    >>> solver = LC_Solver(lc)
+    >>> solver.lc.n
+    3
+    """
+
     def __init__(self, lc: LinearCode = None):
+        """
+        Initializes the LC_Solver with a LinearCode instance.
+
+        :param lc: An instance of LinearCode, optional.
+        """
         self.lc = lc
 
     @classmethod
     def _calculate_base(self, base: Matriu, verbose = True) -> Matriu:
         """
-        Donada una matriu, calcula la seva base.
-        Pot verificar que una base sigui correcte (files LI)
-        o a partir d'una matriu que representa els elements d'un codi
-        calcular-ne la seva base.
+        Given a matrix, calculate its basis.
+        You can check that a basis is correct (LI rows).
+        or from a matrix representing the elements of a code
+        calculate its basis.
 
-        Comprova si la base és vàlida (files LI).
-        Aplica reducció de gauss, comprova quines files són
-        nul·les i les elimina.
+        Check if the basis is valid (LI rows).
+        It applies Gaussian reduction, checks which rows are
+        null and eliminates them.
 
-        Aquesta operació fa que totes les files siguin linealment independents,
-        que cap d'elles depengui d'una altra, o combinació d'aquestes.
+        This operation makes all rows linearly independent,
+        so that none of them depends on any other.
+
+        :param base: The matrix to calculate the base for.
+        :param verbose: If True, prints the steps during the calculation.
+        :return: The reduced base matrix.
         """
         # Primer apliquem reducció. Fa que les files que quedin puguin ser
         # únicament iguals o zero.
@@ -194,16 +329,25 @@ class LC_Solver():
     @classmethod
     def _rrefReduction(self, matrix: Matriu, verbose = True):
         """
-        Donada una matriu, calcula la seva forma RREF (Reduced Row Echelon Form).
-        Això significa que per totes les files d'una matriu, el primer element d'una fila
-        es troba més a la dreta que totes les files superiors
+        Given a matrix, calculate its RREF (Reduced Row Echelon From) form.
+        This means that for all rows in a matrix, the first element of a row
+        is further to the right than all the rows above it.
         Ex:
             [0 1 1 0 1]  ->  [1 1 0 1 1]
             [1 1 0 1 1]  ->  [0 1 1 0 1]
 
-        S'itera cada fila `n`, verificant si l'element `n` d'aquesta fila és 1;
-            si no ho és, es busca si alguna fila té un 1 a la posició `n`, i s'intercanvien;
-            si ho és, es fa que la resta de files tinguin un 0 a aquesta posició
+        Each row "n" is iterated, checking if the element ‘n’ of this row is 1:
+            if it is not, look for whether any row has a 1 at position ‘n’, and swap them;
+            if it is, the rest of the rows are made to have a 0 in this position.
+
+        :param matrix: The matrix to be reduced.
+        :param verbose: If True, prints the steps during the reduction.
+        :return: The reduced matrix.
+
+        >>> matrix = Matriu([[1, 1, 0], [1, 0, 1], [0, 1, 1]])
+        >>> result = LC_Solver._rrefReduction(matrix, verbose=False)
+        >>> result.matrix
+        [[1 0 1], [0 1 1], [0 0 0]]
         """
         for pivot in range(matrix.shape[0]):
             if pivot >= matrix.shape[1]:
@@ -236,13 +380,34 @@ class LC_Solver():
     @classmethod
     def _calculate_H_not_systematic(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
-        Procediment semblant a RREF:
-        Transposem G, i hi concatenem la identitat de n x n (eye(n))
-        Ens quedem amb (Gt|I). Apliquem transformacions elementals
-        per tal que les primeres k files de Gt estiguin esglaonades,
-        i la resta de files de Gt siguin 0. Les transformacions
-        s'apliquen també a la part de I.
-        Les últimes n-k files de la matriu I es corresponen a H.
+        Procedure similar to RREF:
+        We transpose G, is concatenated with the identity of n x n (eye(n)).
+        We are left with (Gt|I). We apply elementary transformations
+        so that the first k rows of Gt are staggered,
+        and the remaining rows of Gt are 0. The transformations
+        are also applied to part I.
+        The last n-k rows of matrix I correspond to H.
+
+        :param G: The generator matrix.
+        :param verbose: If True, prints the steps during the calculation.
+        :return: The calculated parity-check matrix H.
+
+        >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+        >>> H = LC_Solver._calculate_H_not_systematic(G, verbose=False)
+        Utilitzant pivot = 0
+            matrix[2] = matrix[0] + matrix[2]
+            matrix[3] = matrix[0] + matrix[3]
+        Utilitzant pivot = 1
+            matrix[2] = matrix[1] + matrix[2]
+        Utilitzant pivot = 2
+        Utilitzant pivot = 3
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        Utilitzant pivot = 2
+        Utilitzant pivot = 3
+
+        >>> H.matrix
+        [[1 1 1 0], [1 0 0 1]]
         """
         k, n = G.shape
 
@@ -273,10 +438,27 @@ class LC_Solver():
         return self._calculate_base(H)
 
     @classmethod
-    def calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
+    def _calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
-        Calcula la matriu de control, H, indiferentment de si és
-        o no sistemàtica.
+        Computes control matrix H, regardless of whether the
+        generator matrix G is in systematic form.
+
+        :param G: The generator matrix.
+        :param verbose: If True, prints the intermediate steps.
+        :return: The calculated parity-check matrix H.
+
+        >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+        >>> H = LC_Solver._calculate_H(G, verbose=False)
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        G matrix:
+        [1 0 1 1]
+        [0 1 1 0]
+
+        >>> H.matrix
+        [[1 1 1 0], [1 0 0 1]]
         """
         G = self._calculate_base(Matriu(G))
         print("G matrix:")
@@ -293,6 +475,22 @@ class LC_Solver():
 
     @classmethod
     def _min_hamming_distance(self, G: Matriu) -> int:
+        """
+        Computes the minimum Hamming distance of a linear code from its generator matrix G.
+
+        The minimum Hamming distance is the smallest number of columns in G whose sum (mod 2)
+        results in the zero vector.
+
+        :param G: Generator matrix of the linear code.
+        :return: Minimum Hamming distance.
+
+        >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+        >>> LC_Solver._min_hamming_distance(G)
+        2
+        >>> G = Matriu([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
+        >>> LC_Solver._min_hamming_distance(G)
+        3
+        """
         n_cols = G.shape[1]  # Number of columns in G
 
         # Iterate over subset sizes (1 to n_cols)
@@ -313,9 +511,12 @@ class LC_Solver():
     @classmethod
     def Hamming(self, t: int) -> LinearCode:
         """
-        Es genera la H = (A|I) per després poder generar G.
-        Primer es genera el dual, G' = H = (A|I) -> H' = (I|A) = G,
-        i s'obté el codi de Hamming a partir d'aquest
+        H = (A|I) is generated so that G can be generated later.
+        First the dual is generated, G‘ = H = (A|I) -> H’ = (I|A) = G,
+        and the Haming code is obtained from it.
+
+        :param t: The Hamming parameter (defines the number of parity bits).
+        :return: A LinearCode object representing the Hamming code.
         """
         lc = LinearCode()
         lc.n = 2**t-1
@@ -332,7 +533,7 @@ class LC_Solver():
             lc.H.add_column(Row(column))
 
         # Calculem G, considerant que és el dual
-        lc.G = self.calculate_H(lc.H, True)
+        lc.G = self._calculate_H(lc.H, True)
 
         return lc
 
@@ -340,15 +541,52 @@ class LC_Solver():
     @classmethod
     def solve(self, matrix: Matriu, verbose = True) -> LinearCode:
         """
-        Calcula el codi lineal resultant del `LC_Solver`
-        que conté els elements d'un codi o una base d'aquest.
+        Computes the resulting linear code from the `LC_Solver`,
+        which contains the elements of a code or a basis of it.
+
+        This method calculates the generator matrix G, the parity-check matrix H, and the minimum Hamming distance of the code.
+
+        :param matrix: The input matrix used to calculate the code elements or basis.
+        :param verbose: If True, prints the process.
+        :return: A LinearCode object containing the code parameters and matrices.
+
+        >>> lc_solver = LC_Solver()
+        >>> matrix = Matriu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        >>> lc = lc_solver.solve(matrix)
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        Utilitzant pivot = 2
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        Utilitzant pivot = 2
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        Utilitzant pivot = 2
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        Utilitzant pivot = 2
+        G matrix:
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+
+        >>> lc.G.shape
+        (3, 3)
+        >>> lc.H.shape
+        (0, 0)
+        >>> lc.d
+        1
+        >>> lc.k
+        3
+        >>> lc.n
+        3
         """
         lc = LinearCode()
 
         lc.G = self._calculate_base(matrix)
         lc.k, lc.n = lc.G.shape
         lc.M = 2**lc.k
-        lc.H = self.calculate_H(lc.G, verbose)
+        lc.H = self._calculate_H(lc.G, verbose)
         lc.d = self._min_hamming_distance(lc.H)
         return lc
 
@@ -376,7 +614,7 @@ if __name__=="__main__":
     lincode.parameters()
     #solver2 = LC_Solver();
     #solver2.parameters(lincode)
-    
+
     print(lincode.get_code_elements())
     print()
     print(lincode.codify("10100111101001"))
@@ -387,16 +625,7 @@ if __name__=="__main__":
     print()
     print(lincode.decodify_correct("011011000010010011011110111100000000010000"))
 
-    m2 = Matriu([
-        [0,0,0,0,0,0],
-        [0,1,1,0,1,1],
-        [0,1,1,1,0,0],
-        [0,0,0,1,1,1]
-    ])
-    
-    lc = LC_Solver.solve(m2)
-    print(lc.get_code_elements())
-    print(lc.G)
+
 
     # print(code.G.split(slice(code.k), slice(2, 3, 1)))
     # print(LC_Solver._calculate_base(M))
