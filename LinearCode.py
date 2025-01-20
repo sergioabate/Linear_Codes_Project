@@ -296,7 +296,7 @@ class LC_Solver():
         """
         # Primer apliquem reducció. Fa que les files que quedin puguin ser
         # únicament iguals o zero.
-        base = self._rrefReduction(base)
+        base = self._rrefReduction(base, verbose)
 
         # Guarda quines files s'hauran d'eliminar
         to_remove = [0] * base.shape[0]
@@ -324,7 +324,7 @@ class LC_Solver():
         # Apliquem reducció de nou (en eliminar files, potser n'han quedat
         # d'iguals o no està en forma RREF)
         # self.base = self._rrefReduction(base)
-        return self._rrefReduction(base)
+        return self._rrefReduction(base, verbose)
 
     @classmethod
     def _rrefReduction(self, matrix: Matriu, verbose = True):
@@ -394,20 +394,12 @@ class LC_Solver():
 
         >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
         >>> H = LC_Solver._calculate_H_not_systematic(G, verbose=False)
-        Utilitzant pivot = 0
-            matrix[2] = matrix[0] + matrix[2]
-            matrix[3] = matrix[0] + matrix[3]
-        Utilitzant pivot = 1
-            matrix[2] = matrix[1] + matrix[2]
-        Utilitzant pivot = 2
-        Utilitzant pivot = 3
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
-        Utilitzant pivot = 2
-        Utilitzant pivot = 3
-
-        >>> H.matrix
-        [[1 1 1 0], [1 0 0 1]]
+        >>> print(G*H.transpose() % 2 == Matriu.zeros(2)) # Fem test comprovant si G*H^t == 0
+        True
+        >>> G = Matriu([[1, 0, 1, 1, 1, 0], [0, 1, 1, 0, 0, 1], [0, 0, 1, 0, 0, 1]])
+        >>> H = LC_Solver._calculate_H_not_systematic(G, verbose=False)
+        >>> print(G*H.transpose() % 2 == Matriu.zeros(3, 3)) # Matriu 6x3 · 3x6 == 3x3
+        True
         """
         k, n = G.shape
 
@@ -433,12 +425,13 @@ class LC_Solver():
                     # Sumem la fila pivot a la fila on volem eliminar l'element de la columna
                     Gt_i[row] = Gt_i[row] + Gt_i[pivot]
 
-        H = Gt_i.split(slice(n-k-2, n, 1), slice(k, n+k, 1)) % 2
+        H = Gt_i.split(slice(k, n, 1), slice(k, n+k, 1)) % 2
+        # H = Gt_i.split(slice(n-k, n, 1), slice(k, n+k, 1)) % 2
         # H = Gt_i.split(slice(n-k-1, n, 1), slice(k, n+k, 1)) % 2
-        return self._calculate_base(H)
+        return self._calculate_base(H, verbose)
 
     @classmethod
-    def _calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
+    def calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
         """
         Computes control matrix H, regardless of whether the
         generator matrix G is in systematic form.
@@ -448,7 +441,7 @@ class LC_Solver():
         :return: The calculated parity-check matrix H.
 
         >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
-        >>> H = LC_Solver._calculate_H(G, verbose=False)
+        >>> H = LC_Solver.calculate_H(G, verbose=False)
         Utilitzant pivot = 0
         Utilitzant pivot = 1
         Utilitzant pivot = 0
@@ -533,7 +526,7 @@ class LC_Solver():
             lc.H.add_column(Row(column))
 
         # Calculem G, considerant que és el dual
-        lc.G = self._calculate_H(lc.H, True)
+        lc.G = self.calculate_H(lc.H, True)
 
         return lc
 
@@ -586,7 +579,7 @@ class LC_Solver():
         lc.G = self._calculate_base(matrix)
         lc.k, lc.n = lc.G.shape
         lc.M = 2**lc.k
-        lc.H = self._calculate_H(lc.G, verbose)
+        lc.H = self.calculate_H(lc.G, verbose)
         lc.d = self._min_hamming_distance(lc.H)
         return lc
 
@@ -603,6 +596,9 @@ if __name__=="__main__":
                 [0,0,0,0,1,1]
                ])
 
+    M = Matriu([[1,0,1,1],[0,1,1,0]])
+    print(LC_Solver._calculate_H_not_systematic(M))
+    quit()
     #lincode = LC_Solver.solve(M)
     #solver = LC_Solver(lincode)
     print(lincode.H)
