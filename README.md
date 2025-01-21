@@ -38,6 +38,10 @@ The implementation of most methods as been done using what is known a **_Python'
 Represents a row of a matrix. It implements basic arithmetic row operations, as well as boolean operations and row transformations (add/delete entries). It has been implemented to represent a row over the reals field; therefore, characteristics seen of linear codes over the F2 field do not apply in this class. For example `Row([1, 0]) != Row([3, 2])`.
 
 It is the foundation for the `Matrix` class. A usage example for all characteristic of the class can be found below:
+<details>
+  <summary><b>Row examples: </b></summary>
+  <p>
+
 ```python
 from Row import Row
 
@@ -90,6 +94,8 @@ print(r1)
 print(r1[1:4])
 >>> [10 3 4]
 ```
+  </p>
+</details>
 
 ### Matrix
 Represents a matrix. It implements basic arithmetic matrix operations, as well as boolean operations and row transformations (add/delete rows). It has been implemented to represent a matrix over the reals field; therefore, characteristics seen of linear codes over the F2 field do not apply in this class, as previously seen in `Row`.
@@ -124,24 +130,212 @@ Apart from the _magic methods_, it also implements other methods to allow for mo
  ```
 </details>
 
-<!-- > **Matrix.transpose()**
-> Transposes the matrix. Returns a new `Matrix`, where the rows and columns have been swaped.
-> ```python
-> m = Matrix([[1, 2], [3, 4]])
-> print(m.transpose())
-> >>> [1 3]
->     [2 4]
-> ```
+<details>
+  <summary><b>Matrix.remove_row(row)</b></summary>
+ Given a row index, removes it from the matrix. It returns a new matrix, with the given row removed.
 
-> **Matrix.swap_rows(index1, index2)**
-> Given two indeces, representing the row at that position, swaps both rows. The operation is inplace, modifying the inner rows of the matrix instance.
-> ```python
-> m = Matrix([[1, 2], [3, 4]])
-> m.swap_rows(0, 1)
-> print(m)
-> >>> [3 4]
->     [1 2]
-> ``` -->
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.remove_row(1)
+>>> [[1, 2, 3], [7, 8, 9]]
+m2 = Matriu([[10, 20], [30, 40], [50, 60]])
+m2.remove_row(0)
+>>> [[30, 40], [50, 60]]
+m3 = Matriu([[1, 2], [3, 4]])
+m3.remove_row(2)
+>>> Traceback (most recent call last):
+>>> ...
+>>> IndexError: Row index out of bounds
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.add_row(row, pos)</b></summary>
+ Given a row, and a position, returns a new matrix with the given row added at the given position.
+ If no position is given, it is appended to the end.
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.add_row(Row([10, 11, 12]))
+>>> [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
+m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2.add_row(Row([7, 8]), pos=1)
+>>> [[1, 2], [7, 8], [3, 4], [5, 6]]
+m3 = Matriu([[1, 2], [3, 4]])
+m3.add_row([5, 6])
+>>> Traceback (most recent call last):
+>>>     ...
+>>> ValueError: Invalid row type
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.add_column(column)</b></summary>
+ Given a column, it returns a new matrix with it added to the end. Despite it being a column, a `Row` instance is expected.
+
+ ```python
+m1 = Matriu([[1, 2], [3, 4], [5, 6]])
+m1.add_column(Row([7, 8, 9]))
+>>> [[1, 2, 7], [3, 4, 8], [5, 6, 9]]
+m2 = Matriu([[1, 2], [3, 4]])
+m2.add_column(Row([5, 6]))
+>>> [[1, 2, 5], [3, 4, 6]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.get_column(column)</b></summary>
+ Given a column index, returns a `Row` instance with its elements being the column's values.
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.get_column(1)
+>>> [2 5 8]
+m2 = Matriu([[1, 2], [3, 4]])
+m2.get_column(0)
+>>>[1 3]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.get_columns(columns)</b></summary>
+ Given an iterable (list, tuple) of columns index, returns a list of `Row` instances with each row's elements being the column's values.
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.get_columns([0, 2])
+>>> [[1 4 7], [3 6 9]]
+m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2.get_columns((0, 1))
+>>> [[1 3 5], [2 4 6]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.get_row(row)</b></summary>
+ Given a row index, returns a `Row` instance of the matrix's row.
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.get_row(1)
+>>> [4 5 6]
+m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2.get_row(2)
+>>> [5 6]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.get_rows(rows)</b></summary>
+ Given an iterable (list, tuple) of row indexes, returns a list of `Row` instances corresponding to the Matrix's rows
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.get_rows([0, 2])
+>>> [[1 2 3], [7 8 9]]
+m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2.get_rows((0, 1))
+>>> [[1 2], [3 4]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.hstack(matrix)</b></summary>
+    Horizontally stacks another matrix to the current matrix (i.e., appends columns of the second matrix to the self matrix).
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6]])
+m2 = Matriu([[7, 8], [9, 10]])
+m1.hstack(m2)
+>>> [[1, 2, 3, 7, 8], [4, 5, 6, 9, 10]]
+m3 = Matriu([[1, 2], [3, 4], [5, 6]])
+m4 = Matriu([[7, 8], [9, 10], [11, 12]])
+m3.hstack(m4)
+>>> [[1, 2, 7, 8], [3, 4, 9, 10], [5, 6, 11, 12]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.vstack(matrix)</b></summary>
+    Vertically stacks another matrix to the current matrix (i.e., appends rows of the second matrix to the self matrix).
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6]])
+m2 = Matriu([[7, 8, 9], [10, 11, 12]])
+m1.vstack(m2)
+>>> [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
+m3 = Matriu([[1, 2], [3, 4], [5, 6]])
+m4 = Matriu([[7, 8], [9, 10], [11, 12]])
+m3.vstack(m4)
+>>> [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.split(rows, columns)</b></summary>
+    Splits the matrix into a submatrix defined by the given row and column slices. 
+
+ ```python
+m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1.split(slice(0, 2), slice(0, 2))
+>>> [[1, 2], [4, 5]]
+m2 = Matriu([[10, 11, 12, 13], [14, 15, 16, 17], [18, 19, 20, 21]])
+m2.split(slice(1, 3), slice(2, 4))
+>>> [[16, 17], [20, 21]]
+ ```
+</details>
+
+These last methods are specially useful (and used) by the `LC_Solver` class to calculate the control matrix of a given matrix. Furthermore, they can also be useful to perform other matrix operations.
+
+There are also 3 class methods (that is, no `Matrix` instance is needed to run them) considered to be _Helper Methods_:
+
+<details>
+  <summary><b>Matrix.eye(N)</b></summary>
+      Creates an identity matrix of size N x N.
+
+ ```python
+Matriu.eye(3)
+>>> [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+Matriu.eye(4)
+>>> [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+Matriu.eye(2)
+>>> [[1, 0], [0, 1]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.ones(N, M)</b></summary>
+    Creates a matrix filled with ones of size N x M. If no `M` parameter is given, it defaults to a square matrix.
+
+ ```python
+Matriu.ones(3)
+>>> [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
+Matriu.ones(2, 4)
+>>> [[1, 1, 1, 1], [1, 1, 1, 1]]
+Matriu.ones(1, 5)
+>>> [[1, 1, 1, 1, 1]]
+Matriu.ones(4, 2)
+>>> [[1, 1], [1, 1], [1, 1], [1, 1]]
+ ```
+</details>
+
+<details>
+  <summary><b>Matrix.zeros(N, M)</b></summary>
+    Creates a matrix filled with zeros of size N x M. If no `M` parameter is given, it defaults to a square matrix.
+
+ ```python
+Matriu.zeros(3)
+>>> [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+Matriu.zeros(2, 4)
+>>> [[0, 0, 0, 0], [0, 0, 0, 0]]
+Matriu.zeros(1, 5)
+>>> [[0, 0, 0, 0, 0]]
+Matriu.zeros(4, 2)
+>>> [[0, 0], [0, 0], [0, 0], [0, 0]]
+ ```
+</details>
+
+Again, these methods are useful to calculate the control matrix (specially when `G = (I | A)`, as it requries the identity matrix to be appended). They are also helpful to verify if two given G and H matrices are valid, as they must verify `G · H^t == 0`.
 
 ### LinearCode
 The LinearCode class represents a linear code with all its parameters as attributes. This class allows to perform all the functions for which these codes exist in the world of coding theory.
@@ -160,7 +354,7 @@ This class incorporates methods to implement the basic functions of Linear Codes
 Apart from these methods (explained in detail below), there is an auxiliary method, which allows us to divide a sequence of bits (e.g. a message to be encoded) into blocks of the desired length.
 
 <details>
-  <summary><b>_split_bits_in_blocks(bits, size)</b></summary>
+  <summary><b>LinearCode._split_bits_in_blocks(bits, size)</b></summary>
  Returns instances of Matriu corresponding to the blocks of the bit sequence.
 
  ```python
@@ -407,6 +601,8 @@ To implement this mechanism, a method has been designed to calculate the distanc
 
   If a sum results in 0, the bulces are stopped and the index through which the first loop goes (corresponding to the number of columns that have been added to obtain 0) is returned. Otherwise, the total number of columns of the matrix plus 1 is returned.
 
+  <p>
+
    ```python
    H = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
    LC_Solver._min_hamming_distance(H)
@@ -415,6 +611,7 @@ To implement this mechanism, a method has been designed to calculate the distanc
    LC_Solver._min_hamming_distance(H)
    4
    ```
+  </p>
 </details>
 
 #### Solving a Hamming Code

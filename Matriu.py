@@ -281,10 +281,10 @@ class Matriu:
         >>> m3.remove_row(2)
         Traceback (most recent call last):
             ...
-        IndexError: Index de fila fora de límits
+        IndexError: Row index out of bounds
         """
         if not (0 <= row < self.shape[0]):
-            raise IndexError("Index de fila fora de límits")
+            raise IndexError("Row index out of bounds")
         self.matrix.pop(row)
         self.shape = (self.shape[0]-1, self.shape[1])
         return self
@@ -316,7 +316,7 @@ class Matriu:
         >>> m4.add_row(Row([7, 8]), pos=5)
         Traceback (most recent call last):
             ...
-        IndexError: Index de fila fora de límits
+        IndexError: Row index out of bounds
         """
         if not isinstance(row, Row):
             raise ValueError("Invalid row type")
@@ -327,7 +327,7 @@ class Matriu:
             return self
 
         if not (0 <= pos < self.shape[0]):
-            raise IndexError("Index de fila fora de límits")
+            raise IndexError("Row index out of bounds")
 
         self.matrix.append([])
         for row_pos in range(self.shape[0]-1, pos-1, -1):
@@ -605,13 +605,10 @@ class Matriu:
 
         >>> Matriu.zeros(3)
         [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-
         >>> Matriu.zeros(2, 4)
         [[0, 0, 0, 0], [0, 0, 0, 0]]
-
         >>> Matriu.zeros(1, 5)
         [[0, 0, 0, 0, 0]]
-
         >>> Matriu.zeros(4, 2)
         [[0, 0], [0, 0], [0, 0], [0, 0]]
         """
