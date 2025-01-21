@@ -3,7 +3,7 @@ from typing import Generator
 from itertools import combinations
 
 from Row import Row
-from Matriu import Matriu
+from Matrix import Matrix
 
 import itertools
 
@@ -16,8 +16,8 @@ class LinearCode:
     It implements methods to get all code elements, split messages into blocks,
     compress parameters, encode, decode and detect errors, and decode and correct errors.
     """
-    G: Matriu = None
-    H: Matriu = None
+    G: Matrix = None
+    H: Matrix = None
 
     n: int = None
     k: int = None
@@ -42,8 +42,8 @@ class LinearCode:
         :return: A dictionary where the keys are the code elements (as strings)
                 and the values are the corresponding message blocks.
 
-        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
         >>> lincode = LinearCode()
         >>> lincode.G = m1
         >>> lincode.H = m2
@@ -63,7 +63,7 @@ class LinearCode:
         elements = {}
 
         for bloc in blocs:
-            bloc_matrix = Matriu([list(bloc)])
+            bloc_matrix = Matrix([list(bloc)])
             code_element = bloc_matrix * self.G % 2
             elements[str(code_element)] = bloc
 
@@ -71,7 +71,7 @@ class LinearCode:
 
         return elements
 
-    def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matriu, None, None]:
+    def _split_bits_in_blocks(self, bits: list[int], size: int) -> Generator[Matrix, None, None]:
         """
         Splits a list of bits into blocks of a specified size.
 
@@ -79,9 +79,9 @@ class LinearCode:
 
         :param bits: List of bits to be split into blocks.
         :param size: The size of each block.
-        :return: A generator that yields Matriu instances, each containing a block of bits.
+        :return: A generator that yields Matrix instances, each containing a block of bits.
 
-        >>> code = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+        >>> code = LinearCode(G=Matrix.eye(3), H=Matrix.eye(3), n=3, k=2, M=5, d=3)
         >>> list(code._split_bits_in_blocks([1, 0, 1, 1, 0, 0], 3))
         [[[1, 0, 1]], [[1, 0, 0]]]
         >>> list(code._split_bits_in_blocks([1, 0, 1], 2))
@@ -93,14 +93,14 @@ class LinearCode:
             raise ValueError(f"Length of bits ({len(bits)}) and block size ({size}) do not match")
 
         for block in range(0, len(bits), size):
-            yield Matriu([bits[block:block+size]])
+            yield Matrix([bits[block:block+size]])
 
     def parameters(self):
         """
         Prints the parameters of the Linear Code based on the generator matrix G,
         the control matrix H, and other parameters.
 
-        >>> code = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+        >>> code = LinearCode(G=Matrix.eye(3), H=Matrix.eye(3), n=3, k=2, M=5, d=3)
         >>> code.parameters()
         Linear Code Parameters:
         - Code Length (n): 3
@@ -143,8 +143,8 @@ class LinearCode:
         :param bits: A list of bits or a string of bits to encode.
         :return: A string representing the encoded bits.
 
-        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
         >>> lincode = LinearCode()
         >>> lincode.G = m1
         >>> lincode.H = m2
@@ -175,8 +175,8 @@ class LinearCode:
         :param bits: A list of bits or a string of bits to decode.
         :return: A string representing the decoded message, with '?' for erroneous blocks.
 
-        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
         >>> lincode = LinearCode()
         >>> lincode.G = m1
         >>> lincode.H = m2
@@ -211,8 +211,8 @@ class LinearCode:
         :param bits: A list of bits or a string of bits to decode.
         :return: A string representing the decoded message, with '?' for uncorrectable blocks.
 
-        >>> m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-        >>> m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+        >>> m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+        >>> m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
         >>> lincode = LinearCode()
         >>> lincode.G = m1
         >>> lincode.H = m2
@@ -233,7 +233,7 @@ class LinearCode:
         liders_e = (list(error) for error in itertools.product([0, 1], repeat=self.n) if 0 < sum(error) <= correct_capacity) # erros menors que cap. corr
         taula_sindromes = {}
         for lider_e in liders_e: # calcula taula de síndromes
-            lider_e_matrix = Matriu([list(lider_e)])
+            lider_e_matrix = Matrix([list(lider_e)])
             sindr = self.H * lider_e_matrix.transpose() % 2
             taula_sindromes[str(sindr)] = lider_e_matrix
 
@@ -261,7 +261,7 @@ class LC_Solver():
         lc (LinearCode): An instance of the LinearCode class.
 
     Example:
-    >>> lc = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+    >>> lc = LinearCode(G=Matrix.eye(3), H=Matrix.eye(3), n=3, k=2, M=5, d=3)
     >>> solver = LC_Solver(lc)
     >>> solver.lc.n
     3
@@ -276,7 +276,7 @@ class LC_Solver():
         self.lc = lc
 
     @classmethod
-    def _calculate_base(self, base: Matriu, verbose = True) -> Matriu:
+    def _calculate_base(self, base: Matrix, verbose = True) -> Matrix:
         """
         Given a matrix, calculate its basis.
         You can check that a basis is correct (LI rows).
@@ -327,7 +327,7 @@ class LC_Solver():
         return self._rrefReduction(base, verbose)
 
     @classmethod
-    def _rrefReduction(self, matrix: Matriu, verbose = True):
+    def _rrefReduction(self, matrix: Matrix, verbose = True):
         """
         Given a matrix, calculate its RREF (Reduced Row Echelon From) form.
         This means that for all rows in a matrix, the first element of a row
@@ -344,7 +344,7 @@ class LC_Solver():
         :param verbose: If True, prints the steps during the reduction.
         :return: The reduced matrix.
 
-        >>> matrix = Matriu([[1, 1, 0], [1, 0, 1], [0, 1, 1]])
+        >>> matrix = Matrix([[1, 1, 0], [1, 0, 1], [0, 1, 1]])
         >>> result = LC_Solver._rrefReduction(matrix, verbose=False)
         >>> result.matrix
         [[1 0 1], [0 1 1], [0 0 0]]
@@ -378,7 +378,7 @@ class LC_Solver():
         return matrix % 2
 
     @classmethod
-    def _calculate_H_not_systematic(self, G: Matriu, verbose: bool = True) -> Matriu:
+    def _calculate_H_not_systematic(self, G: Matrix, verbose: bool = True) -> Matrix:
         """
         Procedure similar to RREF:
         We transpose G, is concatenated with the identity of n x n (eye(n)).
@@ -392,19 +392,19 @@ class LC_Solver():
         :param verbose: If True, prints the steps during the calculation.
         :return: The calculated parity-check matrix H.
 
-        >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+        >>> G = Matrix([[1, 0, 1, 1], [0, 1, 1, 0]])
         >>> H = LC_Solver._calculate_H_not_systematic(G, verbose=False)
-        >>> print(G*H.transpose() % 2 == Matriu.zeros(2)) # Fem test comprovant si G*H^t == 0
+        >>> print(G*H.transpose() % 2 == Matrix.zeros(2)) # Fem test comprovant si G*H^t == 0
         True
-        >>> G = Matriu([[1, 0, 1, 1, 1, 0], [0, 1, 1, 0, 0, 1], [0, 0, 1, 0, 0, 1]])
+        >>> G = Matrix([[1, 0, 1, 1, 1, 0], [0, 1, 1, 0, 0, 1], [0, 0, 1, 0, 0, 1]])
         >>> H = LC_Solver._calculate_H_not_systematic(G, verbose=False)
-        >>> print(G*H.transpose() % 2 == Matriu.zeros(3, 3)) # Matriu 6x3 · 3x6 == 3x3
+        >>> print(G*H.transpose() % 2 == Matrix.zeros(3, 3)) # Matrix 6x3 · 3x6 == 3x3
         True
         """
         k, n = G.shape
 
         Gt = G.transpose()
-        Gt_i = Gt.hstack(Matriu.eye(Gt.shape[0]))
+        Gt_i = Gt.hstack(Matrix.eye(Gt.shape[0]))
         for pivot in range(k):
             if Gt_i[pivot][pivot] == 0:
                 if verbose: print(f"matrix[{pivot}, {pivot}] == 0")
@@ -431,7 +431,7 @@ class LC_Solver():
         return self._calculate_base(H, verbose)
 
     @classmethod
-    def calculate_H(self, G: Matriu, verbose: bool = True) -> Matriu:
+    def calculate_H(self, G: Matrix, verbose: bool = True) -> Matrix:
         """
         Computes control matrix H, regardless of whether the
         generator matrix G is in systematic form.
@@ -440,24 +440,24 @@ class LC_Solver():
         :param verbose: If True, prints the intermediate steps.
         :return: The calculated parity-check matrix H.
 
-        >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+        >>> G = Matrix([[1, 0, 1, 1], [0, 1, 1, 0]])
         >>> H = LC_Solver.calculate_H(G, verbose=False)
         >>> H.matrix
         [[1 1 1 0], [1 0 0 1]]
         """
-        G = self._calculate_base(Matriu(G), verbose)
+        G = self._calculate_base(Matrix(G), verbose)
         k, n = G.shape
         # G = (I|A)?
         G_i = G.split(slice(k), slice(k))
         G_a = G.split(slice(k), slice(k, n, 1))
-        if G_i != Matriu.eye(k):
+        if G_i != Matrix.eye(k):
             return self._calculate_H_not_systematic(G, verbose)
-        H = G_a.transpose().hstack(Matriu.eye((n-k)))
+        H = G_a.transpose().hstack(Matrix.eye((n-k)))
 
         return H
 
     @classmethod
-    def _min_hamming_distance(self, M: Matriu) -> int:
+    def _min_hamming_distance(self, M: Matrix) -> int:
         """
         Computes the minimum Hamming distance of a given matrix M.
 
@@ -469,10 +469,10 @@ class LC_Solver():
         :param M: Matrix to compute the hamming distance.
         :return: Minimum Hamming distance.
 
-        >>> G = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+        >>> G = Matrix([[1, 0, 1, 1], [0, 1, 1, 0]])
         >>> LC_Solver._min_hamming_distance(G)
         2
-        >>> G = Matriu([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
+        >>> G = Matrix([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
         >>> LC_Solver._min_hamming_distance(G)
         4
         """
@@ -529,7 +529,7 @@ class LC_Solver():
 
         lc.d = 3 # per definició
 
-        lc.H = Matriu([[] for _ in range(lc.n-lc.k)])
+        lc.H = Matrix([[] for _ in range(lc.n-lc.k)])
 
         # Afegim les N columnes amb [1, N] valors binaris a cada col
         for col in range(lc.n, 0, -1):
@@ -543,7 +543,7 @@ class LC_Solver():
 
 
     @classmethod
-    def solve(self, matrix: Matriu, verbose = True) -> LinearCode:
+    def solve(self, matrix: Matrix, verbose = True) -> LinearCode:
         """
         Computes the resulting linear code from the `LC_Solver`,
         which contains the elements of a code or a basis of it.
@@ -555,7 +555,7 @@ class LC_Solver():
         :return: A LinearCode object containing the code parameters and matrices.
 
         >>> lc_solver = LC_Solver()
-        >>> matrix = Matriu([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        >>> matrix = Matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         >>> lc = lc_solver.solve(matrix, verbose=False)
         >>> lc.G.shape
         (3, 3)
@@ -579,18 +579,18 @@ class LC_Solver():
 
 if __name__=="__main__":
     lincode = LinearCode()
-    lincode.G = Matriu([
+    lincode.G = Matrix([
                 [0,1,1,1,0,0],
                 [0,1,1,0,1,1]
                ])
-    lincode.H = Matriu([
+    lincode.H = Matrix([
                 [0,1,0,1,1,0],
                 [1,0,0,0,1,1],
                 [0,1,1,0,1,1],
                 [0,0,0,0,1,1]
                ])
 
-    #M = Matriu([[1,0,1,1],[0,1,1,0]])
+    #M = Matrix([[1,0,1,1],[0,1,1,0]])
     #print(LC_Solver._calculate_H_not_systematic(M))
     #quit()
     #lincode = LC_Solver.solve(M)
@@ -625,7 +625,7 @@ if __name__=="__main__":
     # solver = LC_Solver(code)
     # print(solver.codify(list(map(int, list("10100111101001")))))
 
-    # print(Matriu([[], [], []]).add_column(Row([1, 1, 1])))
+    # print(Matrix([[], [], []]).add_column(Row([1, 1, 1])))
 
     # ham3 = LC_Solver.Hamming(5)
     # print(ham3.H)

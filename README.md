@@ -670,9 +670,19 @@ This method returns an instance of `LinearCode`, with all its attributes defined
 The implementation of this method relies on all the previously seen functions of the `LC_Solver` class
 
 ### Testing
-<!-- s'han utilitzat doctests en les funcions per verificar les funcionalitats -->
+To ensure the correct functionality of all classes and their methods, tests have been implemented using Python's doctest module. This module allows tests to be written directly within the method's docstring, making the tests part of the documentation itself.
+
+This approach makes testing more intuitive and user-friendly, as the examples serve a dual purpose: they showcase the method's usage while simultaneously verifying its behavior. By viewing the documentation, users can easily understand the method's functionality and see example inputs and outputs in one place.
+
+Most of the examples seen in this documentation have been directly extracted from the implemented tests.
+
+The correct functioning of all methods can be verified running:
+```shell
+python3 -m doctest Row.py Matrix.py LinearCode.py 
+```
 
 ## Usage
+
 
 ## Examples
 This section shows some examples of implementation to demonstrate how this works.
@@ -700,7 +710,7 @@ print(lincode.G)
     [0 0 1 0 1]
 print(lincode.H)
 >>> [1 1 0 1 0]
-[0 0 1 0 1]
+>>> [0 0 1 0 1]
 ```
 
 ### Example 2: computing the parameters of a linear code
