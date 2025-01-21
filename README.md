@@ -1,5 +1,31 @@
 # Linear Codes in Action
 
+- [Linear Codes in Action](#linear-codes-in-action)
+  * [Introduction](#introduction)
+  * [Program Structure](#program-structure)
+    + [Row](#row)
+    + [Matrix](#matrix)
+    + [LinearCode](#linearcode)
+      - [Computing all the elements of the code](#computing-all-the-elements-of-the-code)
+      - [Calculating the code parameters](#calculating-the-code-parameters)
+      - [Codifying messages](#codifying-messages)
+      - [Decoding messages and detecting/correcting errors](#decoding-messages-and-detecting-correcting-errors)
+    + [LC_Solver](#lc-solver)
+      - [Calculating a base of a matrix (G)](#calculating-a-base-of-a-matrix--g-)
+      - [Calculating a control matrix (H)](#calculating-a-control-matrix--h-)
+      - [Calculating the minimum Hamming Distance (d)](#calculating-the-minimum-hamming-distance--d-)
+      - [Solving a Hamming Code](#solving-a-hamming-code)
+      - [Solving a linear code](#solving-a-linear-code)
+    + [Testing](#testing)
+  * [Usage](#usage)
+  * [Examples](#examples)
+    + [Example 1: computing the canonical and control matrices from three generators](#example-1--computing-the-canonical-and-control-matrices-from-three-generators)
+    + [Example 2: computing the parameters of a linear code](#example-2--computing-the-parameters-of-a-linear-code)
+    + [Example 3: codifying a message](#example-3--codifying-a-message)
+    + [Example 4: detecting errors plus decodifying](#example-4--detecting-errors-plus-decodifying)
+    + [Example 5: correcting errors plus decodifying](#example-5--correcting-errors-plus-decodifying)
+
+
 ## Introduction
 Linear codes are an essential part of error-correcting codes, designed to ensure reliable data transmission and storage. Nowadays, they are widely used in computers and telecomunication systems.
 
@@ -135,13 +161,13 @@ Apart from the _magic methods_, it also implements other methods to allow for mo
  Given a row index, removes it from the matrix. It returns a new matrix, with the given row removed.
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.remove_row(1)
 >>> [[1, 2, 3], [7, 8, 9]]
-m2 = Matriu([[10, 20], [30, 40], [50, 60]])
+m2 = Matrix([[10, 20], [30, 40], [50, 60]])
 m2.remove_row(0)
 >>> [[30, 40], [50, 60]]
-m3 = Matriu([[1, 2], [3, 4]])
+m3 = Matrix([[1, 2], [3, 4]])
 m3.remove_row(2)
 >>> Traceback (most recent call last):
 >>> ...
@@ -155,13 +181,13 @@ m3.remove_row(2)
  If no position is given, it is appended to the end.
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.add_row(Row([10, 11, 12]))
 >>> [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
-m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2 = Matrix([[1, 2], [3, 4], [5, 6]])
 m2.add_row(Row([7, 8]), pos=1)
 >>> [[1, 2], [7, 8], [3, 4], [5, 6]]
-m3 = Matriu([[1, 2], [3, 4]])
+m3 = Matrix([[1, 2], [3, 4]])
 m3.add_row([5, 6])
 >>> Traceback (most recent call last):
 >>>     ...
@@ -174,10 +200,10 @@ m3.add_row([5, 6])
  Given a column, it returns a new matrix with it added to the end. Despite it being a column, a `Row` instance is expected.
 
  ```python
-m1 = Matriu([[1, 2], [3, 4], [5, 6]])
+m1 = Matrix([[1, 2], [3, 4], [5, 6]])
 m1.add_column(Row([7, 8, 9]))
 >>> [[1, 2, 7], [3, 4, 8], [5, 6, 9]]
-m2 = Matriu([[1, 2], [3, 4]])
+m2 = Matrix([[1, 2], [3, 4]])
 m2.add_column(Row([5, 6]))
 >>> [[1, 2, 5], [3, 4, 6]]
  ```
@@ -188,10 +214,10 @@ m2.add_column(Row([5, 6]))
  Given a column index, returns a `Row` instance with its elements being the column's values.
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.get_column(1)
 >>> [2 5 8]
-m2 = Matriu([[1, 2], [3, 4]])
+m2 = Matrix([[1, 2], [3, 4]])
 m2.get_column(0)
 >>>[1 3]
  ```
@@ -202,10 +228,10 @@ m2.get_column(0)
  Given an iterable (list, tuple) of columns index, returns a list of `Row` instances with each row's elements being the column's values.
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.get_columns([0, 2])
 >>> [[1 4 7], [3 6 9]]
-m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2 = Matrix([[1, 2], [3, 4], [5, 6]])
 m2.get_columns((0, 1))
 >>> [[1 3 5], [2 4 6]]
  ```
@@ -216,10 +242,10 @@ m2.get_columns((0, 1))
  Given a row index, returns a `Row` instance of the matrix's row.
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.get_row(1)
 >>> [4 5 6]
-m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2 = Matrix([[1, 2], [3, 4], [5, 6]])
 m2.get_row(2)
 >>> [5 6]
  ```
@@ -230,10 +256,10 @@ m2.get_row(2)
  Given an iterable (list, tuple) of row indexes, returns a list of `Row` instances corresponding to the Matrix's rows
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.get_rows([0, 2])
 >>> [[1 2 3], [7 8 9]]
-m2 = Matriu([[1, 2], [3, 4], [5, 6]])
+m2 = Matrix([[1, 2], [3, 4], [5, 6]])
 m2.get_rows((0, 1))
 >>> [[1 2], [3 4]]
  ```
@@ -244,12 +270,12 @@ m2.get_rows((0, 1))
     Horizontally stacks another matrix to the current matrix (i.e., appends columns of the second matrix to the self matrix).
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6]])
-m2 = Matriu([[7, 8], [9, 10]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6]])
+m2 = Matrix([[7, 8], [9, 10]])
 m1.hstack(m2)
 >>> [[1, 2, 3, 7, 8], [4, 5, 6, 9, 10]]
-m3 = Matriu([[1, 2], [3, 4], [5, 6]])
-m4 = Matriu([[7, 8], [9, 10], [11, 12]])
+m3 = Matrix([[1, 2], [3, 4], [5, 6]])
+m4 = Matrix([[7, 8], [9, 10], [11, 12]])
 m3.hstack(m4)
 >>> [[1, 2, 7, 8], [3, 4, 9, 10], [5, 6, 11, 12]]
  ```
@@ -260,12 +286,12 @@ m3.hstack(m4)
     Vertically stacks another matrix to the current matrix (i.e., appends rows of the second matrix to the self matrix).
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6]])
-m2 = Matriu([[7, 8, 9], [10, 11, 12]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6]])
+m2 = Matrix([[7, 8, 9], [10, 11, 12]])
 m1.vstack(m2)
 >>> [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
-m3 = Matriu([[1, 2], [3, 4], [5, 6]])
-m4 = Matriu([[7, 8], [9, 10], [11, 12]])
+m3 = Matrix([[1, 2], [3, 4], [5, 6]])
+m4 = Matrix([[7, 8], [9, 10], [11, 12]])
 m3.vstack(m4)
 >>> [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
  ```
@@ -276,10 +302,10 @@ m3.vstack(m4)
     Splits the matrix into a submatrix defined by the given row and column slices. 
 
  ```python
-m1 = Matriu([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 m1.split(slice(0, 2), slice(0, 2))
 >>> [[1, 2], [4, 5]]
-m2 = Matriu([[10, 11, 12, 13], [14, 15, 16, 17], [18, 19, 20, 21]])
+m2 = Matrix([[10, 11, 12, 13], [14, 15, 16, 17], [18, 19, 20, 21]])
 m2.split(slice(1, 3), slice(2, 4))
 >>> [[16, 17], [20, 21]]
  ```
@@ -294,11 +320,11 @@ There are also 3 class methods (that is, no `Matrix` instance is needed to run t
       Creates an identity matrix of size N x N.
 
  ```python
-Matriu.eye(3)
+Matrix.eye(3)
 >>> [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-Matriu.eye(4)
+Matrix.eye(4)
 >>> [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-Matriu.eye(2)
+Matrix.eye(2)
 >>> [[1, 0], [0, 1]]
  ```
 </details>
@@ -308,13 +334,13 @@ Matriu.eye(2)
     Creates a matrix filled with ones of size N x M. If no `M` parameter is given, it defaults to a square matrix.
 
  ```python
-Matriu.ones(3)
+Matrix.ones(3)
 >>> [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-Matriu.ones(2, 4)
+Matrix.ones(2, 4)
 >>> [[1, 1, 1, 1], [1, 1, 1, 1]]
-Matriu.ones(1, 5)
+Matrix.ones(1, 5)
 >>> [[1, 1, 1, 1, 1]]
-Matriu.ones(4, 2)
+Matrix.ones(4, 2)
 >>> [[1, 1], [1, 1], [1, 1], [1, 1]]
  ```
 </details>
@@ -324,13 +350,13 @@ Matriu.ones(4, 2)
     Creates a matrix filled with zeros of size N x M. If no `M` parameter is given, it defaults to a square matrix.
 
  ```python
-Matriu.zeros(3)
+Matrix.zeros(3)
 >>> [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-Matriu.zeros(2, 4)
+Matrix.zeros(2, 4)
 >>> [[0, 0, 0, 0], [0, 0, 0, 0]]
-Matriu.zeros(1, 5)
+Matrix.zeros(1, 5)
 >>> [[0, 0, 0, 0, 0]]
-Matriu.zeros(4, 2)
+Matrix.zeros(4, 2)
 >>> [[0, 0], [0, 0], [0, 0], [0, 0]]
  ```
 </details>
@@ -355,10 +381,10 @@ Apart from these methods (explained in detail below), there is an auxiliary meth
 
 <details>
   <summary><b>LinearCode._split_bits_in_blocks(bits, size)</b></summary>
- Returns instances of Matriu corresponding to the blocks of the bit sequence.
+ Returns instances of `Matrix` corresponding to the blocks of the bit sequence.
 
  ```python
-code = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+code = LinearCode(G=Matrix.eye(3), H=Matrix.eye(3), n=3, k=2, M=5, d=3)
 list(code._split_bits_in_blocks([1, 0, 1, 1, 0, 0], 3))
 >>> [[[1, 0, 1]], [[1, 0, 0]]]
  ```
@@ -366,7 +392,9 @@ list(code._split_bits_in_blocks([1, 0, 1, 1, 0, 0], 3))
 
 Thanks to this method we can encode/decode messages according to the message size (`k`) and the code dimension (`M`).
 
-### Computing all the elements of the code
+
+
+#### Computing all the elements of the code
 From the generator matrix G and the measurement of the original messages, all the elements of a linear code can be obtained. To do this, the generator matrix must be multiplied by all possible messages.
 
 The number of possible messages corresponds to `2^k`, taking into account that we are in `F2^n`, and that the messages have measure `k`.
@@ -388,8 +416,8 @@ This implementation has been done as a method of the class.
  This method only calculates the code elements in case the instance itself does not contain them. Otherwise they are not recalculated.
 
 ```python
-m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
 lincode = LinearCode()
 lincode.G = m1
 lincode.H = m2
@@ -403,7 +431,7 @@ print(elements)
 ```
 </details>
 
-### Calculating the code parameters
+#### Calculating the code parameters
 In order to calculate the code parameters, the generator matrix G or the control matrix H must be known. If neither is available, the calculation is not possible.
 
 The parameters that can be derived from these matrices are `n`, `k`, `M`, and `d`. Given that the dimension of the matrix G is `k x n`, and that the dimension of H is `(n-k) x n`, the first two parameters can be derived.
@@ -425,7 +453,7 @@ To calculate all the parameters, the following method has been used:
  It calculates the parameters as explained above, and prints them on the screen. In addition, it assigns them to the corresponding attributes of the instance.
 
  ```python
- code = LinearCode(G=Matriu.eye(3), H=Matriu.eye(3), n=3, k=2, M=5, d=3)
+ code = LinearCode(G=Matrix.eye(3), H=Matrix.eye(3), n=3, k=2, M=5, d=3)
  code.parameters()
  >>> Linear Code Parameters:
      - Code Length (n): 3
@@ -437,7 +465,7 @@ To calculate all the parameters, the following method has been used:
  ```
 </details>
 
-### Codifying messages
+#### Codifying messages
 To encode a message, it must be split into blocks of size `k`, and multiply each one by the generator matrix G of the linear code. In this way, the encoded message is obtained.
 
 For this, the following method is used:
@@ -449,8 +477,8 @@ For this, the following method is used:
 The `_split_bits_in_blocks()` method is used to split the message into blocks.
 
 ```python
-m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
 lincode = LinearCode()
 lincode.G = m1
 lincode.H = m2
@@ -463,7 +491,7 @@ print(lincode.codify("10100111101001"))
 ```
 </details>
 
-### Decoding messages and detecting/correcting errors
+#### Decoding messages and detecting/correcting errors
 The opposite operation to the previous one is to decode the messages. Also, in this process, errors can be detected and corrected.
 
 To decode, the coded message must be divided into blocks of size `n`. Once split, possible errors must be detected. To do so, the syndrome is calculated, as explained in the introduction: each block is multiplied by the control matrix H.
@@ -483,8 +511,8 @@ Two methods have been developed in this section: one for decoding and detecting 
  In case of errors, the `?` character is concatenated `?` `k` times.
 
  ```python
-m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
 lincode = LinearCode()
 lincode.G = m1
 lincode.H = m2
@@ -506,8 +534,8 @@ print(lincode.decodify_detect("011011000010010011011110111100000000010000"))
 In addition, unlike the previous method, if an error is detected, the syndrome is looked up in the syndromes table and the corresponding leader is subtracted from the block to be decoded.
 
  ```python
-m1 = Matriu([[0,1,1,1,0,0],[0,1,1,0,1,1]])
-m2 = Matriu([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
+m1 = Matrix([[0,1,1,1,0,0],[0,1,1,0,1,1]])
+m2 = Matrix([[0,1,0,1,1,0], [1,0,0,0,1,1], [0,1,1,0,1,1], [0,0,0,0,1,1]])
 lincode = LinearCode()
 lincode.G = m1
 lincode.H = m2
@@ -528,7 +556,7 @@ This class has only one attribute: a linear code, which corresponds to an instan
 The methods included in the class are detailed below.
 
 #### Calculating a base of a matrix (G)
-Being able to obtain a base for a given matrix is a key operation in linear codes. As it has previsouly been said, a generator matrix is a base for all the codewords. Therefore, calculating the base should be the first operation performed. It is a private method of `LC_Solver`, **LC_Solver._calculate_base(Matrix)**.
+Being able to obtain a base for a given matrix is a key operation in linear codes. As it has previsouly been said, a generator matrix is a base for all the codewords. Therefore, calculating the base should be the first operation performed. It is a public method of `LC_Solver`, **LC_Solver.calculate_base(Matrix)**. It is made public to allow users to calculate any matrix into its canonical form and, if possible, in its systematic form.
 
 To do so, the matrix is first reduced into **RREF**, where for each row, its first element is at the right-most from all the rows above it. Furthermore, all the other elements in that column must also be zero. The idea is to try to have the identity matrix further to the left as possible. As a quick example:
 ```
@@ -590,7 +618,7 @@ This procedure consists of observing the relationship between the different colu
 To implement this mechanism, a method has been designed to calculate the distance from the control matrix.
 
 <details>
-    <summary><b>LCSolver._min_Hamming_distance(Matrix)</b></summary>
+    <summary><b>LC_Solver._min_Hamming_distance(Matrix)</b></summary>
 
   Given an instance of `Matrix` corresponding to the control matrix `H`, the minimum distance is returned as an `int`.
 
@@ -604,10 +632,10 @@ To implement this mechanism, a method has been designed to calculate the distanc
   <p>
 
    ```python
-   H = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+   H = Matrix([[1, 0, 1, 1], [0, 1, 1, 0]])
    LC_Solver._min_hamming_distance(H)
    >>> 2
-   H = Matriu([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
+   H = Matrix([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
    LC_Solver._min_hamming_distance(H)
    4
    ```
@@ -627,10 +655,10 @@ In the case of the control matrix `H`, it consists of a `(n - k) x n` matrix, wh
 
 In the case of the generator matrix `G`, it can be calculated from `H` in the same way as `G` is calculated from `H` in a linear code. This is because it uses the property of **dual codes**, where the `G` of one code is the `H` of the other. If we interpret the H that has been previously calculated as the `G` of the dual, we can calculate the `H` of this `G`, and we get the `G` of the Hamming code.
 
-This implementation is found as part of a method of the `LCSolver` class. It is implemented as a class method; therefore, creating an instance of the class is not needed.
+This implementation is found as part of a method of the `LC_Solver` class. It is implemented as a class method; therefore, creating an instance of the class is not needed.
 
 <details>
-    <summary><b>LCSolver.Hamming(t)</b></summary>
+    <summary><b>LC_Solver.Hamming(t)</b></summary>
 
   Given the parameter t, all parameters and matrices of the Hamming code are computed, and added to the returned code instance.
 
@@ -697,7 +725,7 @@ v3 = [1 1 1 0 1]
 ```
 
 ```python
-vectors = Matriu([
+vectors = Matrix([
                 [0,0,1,0,1],
                 [1,0,0,1,0],
                 [1,1,1,0,1]
@@ -724,7 +752,7 @@ G = [1 0 0 1 0 1]
 ```
 
 ```python
-G = Matriu([
+G = Matrix([
             [1, 0, 0, 1, 0, 1],
             [0, 1, 0, 1, 0, 1],
             [0, 0, 1, 0, 0, 1]
@@ -758,7 +786,7 @@ G = [1 0 0 1 1 0 1]
 The message to be coded is as follows: `100110100100111011011`.
 
 ```python
-G = Matriu([
+G = Matrix([
             [1, 0, 0, 1, 1, 0, 1],
             [0, 1, 0, 0, 1, 0, 1],
             [0, 0, 1, 1, 0, 0, 0]
@@ -787,7 +815,7 @@ G = [1 0 0 0 1 1 0]
 The message to be decoded is as follows: `10110100101011`.
 
 ```python
-G = Matriu([
+G = Matrix([
             [1, 0, 0, 0, 1, 1, 0],
             [0, 1, 0, 0, 1, 0, 1],
             [0, 0, 1, 0, 0, 1, 1],
@@ -818,7 +846,7 @@ G = [1 0 0 0 1 1 0]
 The message to be decoded is as follows: `10110100101011`.
 
 ```python
-G = Matriu([
+G = Matrix([
             [1, 0, 0, 0, 1, 1, 0],
             [0, 1, 0, 0, 1, 0, 1],
             [0, 0, 1, 0, 0, 1, 1],
@@ -835,3 +863,22 @@ print(lincode.decodify_correct("10110100101011"))
 >>> 10110101
 ```
 
+### Example 6: using a Hamming Code
+In this example a Hamming Code is obtained using the helper functions defined in `LC_Solver`.
+
+```python
+ham_code = LC_Solver.Hamming(3)
+print(ham_code.H)
+>>> [1 1 1 1 0 0 0]
+    [1 1 0 0 1 1 0]
+    [1 0 1 0 1 0 1]
+```
+
+The control matrix can also be written in systematic form, using `LC_Solver.calculate_base()`:
+```python
+H_syst = LC_Solver.calculate_base(ham_code.H)
+print(H_syst)
+>>> [1 0 0 1 0 1 1]
+    [0 1 0 1 1 0 1]
+    [0 0 1 1 1 1 0]
+```

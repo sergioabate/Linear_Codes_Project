@@ -276,7 +276,7 @@ class LC_Solver():
         self.lc = lc
 
     @classmethod
-    def _calculate_base(self, base: Matrix, verbose = True) -> Matrix:
+    def calculate_base(self, base: Matrix, verbose = True) -> Matrix:
         """
         Given a matrix, calculate its basis.
         You can check that a basis is correct (LI rows).
@@ -428,7 +428,7 @@ class LC_Solver():
         H = Gt_i.split(slice(k, n, 1), slice(k, n+k, 1)) % 2
         # H = Gt_i.split(slice(n-k, n, 1), slice(k, n+k, 1)) % 2
         # H = Gt_i.split(slice(n-k-1, n, 1), slice(k, n+k, 1)) % 2
-        return self._calculate_base(H, verbose)
+        return self.calculate_base(H, verbose)
 
     @classmethod
     def calculate_H(self, G: Matrix, verbose: bool = True) -> Matrix:
@@ -445,7 +445,7 @@ class LC_Solver():
         >>> H.matrix
         [[1 1 1 0], [1 0 0 1]]
         """
-        G = self._calculate_base(Matrix(G), verbose)
+        G = self.calculate_base(Matrix(G), verbose)
         k, n = G.shape
         # G = (I|A)?
         G_i = G.split(slice(k), slice(k))
@@ -507,8 +507,7 @@ class LC_Solver():
         :param t: The Hamming parameter (defines the number of parity bits).
         :return: A LinearCode object representing the Hamming code.
 
-        >>> lc_solver = LC_Solver()
-        >>> lc = lc_solver.Hamming(2)
+        >>> lc = LC_Solver.Hamming(2)
         >>> lc.n
         3
         >>> lc.M
@@ -570,7 +569,7 @@ class LC_Solver():
         """
         lc = LinearCode()
 
-        lc.G = self._calculate_base(matrix, verbose)
+        lc.G = self.calculate_base(matrix, verbose)
         lc.k, lc.n = lc.G.shape
         lc.M = 2**lc.k
         lc.H = self.calculate_H(lc.G, verbose)
