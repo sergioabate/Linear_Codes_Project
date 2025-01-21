@@ -284,7 +284,7 @@ Two methods have been developed in this section: one for decoding and detecting 
 
 <details>
   <summary><b>LinearCode.decodify_detect(bits)</b></summary>
- From a `list` or `string` of bits corresponding to the encoded message, the message is split into blocks of size `n` with the `_split_bits_in_blocks()` method, and the syndrome is calculated for each of them. In case there are no errors, the block is decoded from the dictionary of code elements, and the block is concatenated into the resulting `string`.
+ From a `list` or `string` of bits corresponding to the encoded message, the message is split into blocks of size `n` with the **_split_bits_in_blocks()** method, and the syndrome is calculated for each of them. In case there are no errors, the block is decoded from the dictionary of code elements, and the block is concatenated into the resulting `string`.
 
  In case of errors, the `?` character is concatenated `?` `k` times.
 
@@ -327,6 +327,12 @@ print(lincode.decodify_detect("011011000010010011011110111100000000010000"))
 </details>
 
 ### LC_Solver
+It represents a Linear Code calculator, which, starting from an instance of Matrix, can its base, its control matrix, and from these, all the parameters of the linear code.
+
+This class has only one attribute: a linear code, which corresponds to an instance of LinearCode.
+
+The methods included in the class are detailed below.
+
 #### Calculating a base of a matrix (G)
 Being able to obtain a base for a given matrix is a key operation in linear codes. As it has previsouly been said, a generator matrix is a base for all the codewords. Therefore, calculating the base should be the first operation performed. It is a private method of `LC_Solver`, **LC_Solver._calculate_base(Matrix)**.
 
@@ -377,9 +383,83 @@ Given a Matrix, which corresponds to the generating matrix, it first computes it
   </details>
 </details>
 
-
-
 #### Calculating the minimum Hamming Distance (d)
+The minimum Hamming distance (`d`) corresponds to the minimum number of bits by which two elements of a linear code differ.
+
+It can be calculated from the control matrix `H`, a procedure which has been implemented as a method of this class.
+
+This procedure consists of observing the relationship between the different columns that make up the control matrix `H`. The value of the minimum Hamming distance can obtain the following values:
+* d = 1`: if there is any column where all elements are 0.
+* In case there is no null column, the combination of columns whose result is 0 is searched. In this case, `d` will be equal to the number of columns necessary for the result to be 0.
+* In case there is no combination resulting in 0, `d` will be equal to the number of columns of the matrix `H` plus 1.
+
+To implement this mechanism, a method has been designed to calculate the distance from the control matrix.
+
+<details>
+    <summary><b>LCSolver._min_Hamming_distance(Matrix)</b></summary>
+
+  Given an instance of `Matrix` corresponding to the control matrix `H`, the minimum distance is returned as an `int`.
+
+  The procedure is as follows:
+  1. The number of columns of the `H` matrix is identified from the `shape` attribute of the `Matrix` instance.
+  2. Loop the number of times corresponding to the number of columns in the matrix to find out how many columns are being added at any given time.
+  3. Inside the first loop, a second loop is made in which a list is generated with all the combinations of columns from 0 to the number of columns that are grouped at this moment (depending on where the first loop goes). To make the combinations we use the ìtertools` library, specifically, the `combinations()` function. When we get this list of tuples, they are obtained from the `get_columns()` method of `Matrix` and added together.
+
+  If a sum results in 0, the bulces are stopped and the index through which the first loop goes (corresponding to the number of columns that have been added to obtain 0) is returned. Otherwise, the total number of columns of the matrix plus 1 is returned.
+
+   ```python
+   H = Matriu([[1, 0, 1, 1], [0, 1, 1, 0]])
+   LC_Solver._min_hamming_distance(H)
+   >>> 2
+   H = Matriu([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
+   LC_Solver._min_hamming_distance(H)
+   4
+   ```
+</details>
+
+#### Solving a Hamming Code
+
+This class also incorporates a method to find a Hamming code. These codes have a `t` parameter, with which it is possible to calculate all their parameters, including the generator and control matrices.
+
+In the case of the parameters, they are calculated as follows:
+* `n = 2^t - 1`.
+* M = 2^n`.
+* `k = n - t` * `M = 2^n` * `k = n - t`
+
+In the case of the control matrix `H`, it consists of a `(n - k) x n` matrix, where the columans correspond to all binary combinations of `t` bits, except the null combination.
+
+In the case of the generator matrix `G`, it can be calculated from `H` in the same way as `G` is calculated from `H` in a linear code. This is because it uses the property of **dual codes**, where the `G` of one code is the `H` of the other. If we interpret the H that has been previously calculated as the `G` of the dual, we can calculate the `H` of this `G`, and we get the `G` of the Hamming code.
+
+This implementation is found as part of a method of the `LCSolver` class.
+
+<details>
+    <summary><b>LCSolver.Hamming(t)</b></summary>
+
+  Given the parameter t, all parameters and matrices of the Hamming code are computed, and added to the returned code instance.
+
+  To calculate the parameters, it is done in exactly the same way as explained above.
+
+  In the case of `H`, an instance of `Matrix` is created, in which the binary numbers from 1 to t are generated and added as columns.
+
+  In the case of `G`, it is calculated with the **calculate_H(H)** method.
+
+   ```python
+   lc_solver = LC_Solver()
+   lc = lc_solver.Hamming(2)
+   lc.n
+   >>> 3
+   lc.M
+   >>> 8
+   lc.k
+   >>> 1
+   lc.d
+   >>> 3
+   lc.G
+   >>> [[1, 1, 1]]
+   lc.H
+   >>> [[1, 1, 0], [1, 0, 1]]
+   ```
+</details>
 
 #### Solving a linear code
 A main method is given, **LC_Solver.solve(Matrix)**. This method allows to solve a given matrix, obtaining its linear code.

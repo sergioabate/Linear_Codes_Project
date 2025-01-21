@@ -463,7 +463,7 @@ class LC_Solver():
 
         The minimum Hamming distance is the smallest number of columns in M whose sum (mod 2)
         results in the zero vector.
-        
+
         It is usually used to compute the distance parameter, d, of a linear code given the H matrix
 
         :param M: Matrix to compute the hamming distance.
@@ -504,6 +504,27 @@ class LC_Solver():
 
         :param t: The Hamming parameter (defines the number of parity bits).
         :return: A LinearCode object representing the Hamming code.
+
+        >>> lc_solver = LC_Solver()
+        >>> lc = lc_solver.Hamming(2)
+        Utilitzant pivot = 0
+            matrix[1] = matrix[0] + matrix[1]
+        Utilitzant pivot = 1
+            matrix[0] = matrix[1] + matrix[0]
+        Utilitzant pivot = 0
+        Utilitzant pivot = 1
+        >>> lc.n
+        3
+        >>> lc.M
+        8
+        >>> lc.k
+        1
+        >>> lc.d
+        3
+        >>> lc.G
+        [[1, 1, 1]]
+        >>> lc.H
+        [[1, 1, 0], [1, 0, 1]]
         """
         lc = LinearCode()
         lc.n = 2**t-1
@@ -573,9 +594,9 @@ if __name__=="__main__":
                 [0,0,0,0,1,1]
                ])
 
-    M = Matriu([[1,0,1,1],[0,1,1,0]])
-    print(LC_Solver._calculate_H_not_systematic(M))
-    quit()
+    #M = Matriu([[1,0,1,1],[0,1,1,0]])
+    #print(LC_Solver._calculate_H_not_systematic(M))
+    #quit()
     #lincode = LC_Solver.solve(M)
     #solver = LC_Solver(lincode)
     print(lincode.H)
