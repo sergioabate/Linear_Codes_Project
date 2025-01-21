@@ -17,7 +17,6 @@
       - [Solving a Hamming Code](#solving-a-hamming-code)
       - [Solving a linear code](#solving-a-linear-code)
     + [Testing](#testing)
-  * [Usage](#usage)
   * [Examples](#examples)
     + [Example 1: computing the canonical and control matrices from three generators](#example-1--computing-the-canonical-and-control-matrices-from-three-generators)
     + [Example 2: computing the parameters of a linear code](#example-2--computing-the-parameters-of-a-linear-code)
