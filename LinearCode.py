@@ -459,7 +459,7 @@ class LC_Solver():
     @classmethod
     def _min_hamming_distance(self, M: Matriu) -> int:
         """
-        Computes the minimum Hamming distance of a linear code from its generator matrix G.
+        Computes the minimum Hamming distance of a given matrix M.
 
         The minimum Hamming distance is the smallest number of columns in M whose sum (mod 2)
         results in the zero vector.
@@ -498,9 +498,11 @@ class LC_Solver():
     @classmethod
     def Hamming(self, t: int) -> LinearCode:
         """
+        Generates the Ham(t) linear code.
+        
         H = (A|I) is generated so that G can be generated later.
         First the dual is generated, G' = H = (A|I) -> H' = (I|A) = G,
-        and the Haming code is obtained from it.
+        and the Hamming code is obtained from it.
 
         :param t: The Hamming parameter (defines the number of parity bits).
         :return: A LinearCode object representing the Hamming code.

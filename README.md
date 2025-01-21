@@ -388,8 +388,8 @@ The minimum Hamming distance (`d`) corresponds to the minimum number of bits by 
 
 It can be calculated from the control matrix `H`, a procedure which has been implemented as a method of this class.
 
-This procedure consists of observing the relationship between the different columns that make up the control matrix `H`. The value of the minimum Hamming distance can obtain the following values:
-* d = 1`: if there is any column where all elements are 0.
+This procedure consists of observing the relationship between the different columns that make up the control matrix `H`. The value of the minimum Hamming distance can be any of the following:
+* `d = 1`: if there is any column where all elements are 0.
 * In case there is no null column, the combination of columns whose result is 0 is searched. In this case, `d` will be equal to the number of columns necessary for the result to be 0.
 * In case there is no combination resulting in 0, `d` will be equal to the number of columns of the matrix `H` plus 1.
 
@@ -430,7 +430,7 @@ In the case of the control matrix `H`, it consists of a `(n - k) x n` matrix, wh
 
 In the case of the generator matrix `G`, it can be calculated from `H` in the same way as `G` is calculated from `H` in a linear code. This is because it uses the property of **dual codes**, where the `G` of one code is the `H` of the other. If we interpret the H that has been previously calculated as the `G` of the dual, we can calculate the `H` of this `G`, and we get the `G` of the Hamming code.
 
-This implementation is found as part of a method of the `LCSolver` class.
+This implementation is found as part of a method of the `LCSolver` class. It is implemented as a class method; therefore, creating an instance of the class is not needed.
 
 <details>
     <summary><b>LCSolver.Hamming(t)</b></summary>
@@ -441,11 +441,13 @@ This implementation is found as part of a method of the `LCSolver` class.
 
   In the case of `H`, an instance of `Matrix` is created, in which the binary numbers from 1 to t are generated and added as columns.
 
-  In the case of `G`, it is calculated with the **calculate_H(H)** method.
+  In the case of `G`, it is calculated with the **calculate_H(H)** method, using the code duality property.
+  > Two codes are said to be dual if one's generator matrix corresponds to the other's control matrix, and viceversa: `G1 = H2, G2 = H1`
+
+  An example to obtain a Hamming code is shown below:
 
    ```python
-   lc_solver = LC_Solver()
-   lc = lc_solver.Hamming(2)
+   lc = LC_Solver.Hamming(2)
    lc.n
    >>> 3
    lc.M
