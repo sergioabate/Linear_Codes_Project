@@ -478,9 +478,153 @@ The implementation of this method relies on all the previously seen functions of
 ## Usage
 
 ## Examples
+This section shows some examples of implementation to demonstrate how this works.
+
+### Example 1: computing the canonical and control matrices from three generators
 <!-- Un exemple de LC_Solver.solve() amb una matriu que representi una G amb format correcte -->
-<!-- Un exemple de LC_Solver.solve() amb una matriu que tingui els elements d'un codi -->
-<!-- Exemple de codificació -->
-<!-- Exemple de descodificació i detecció -->
-<!-- Exemple de descodificació i correció -->
-<!-- Exemple de descodificació i correció amb més errors dels que pot corregir -->
+From the following generators, the generator and control matrices will be obtained.
+```
+v1 = [0 0 1 0 1]
+v2 = [1 0 0 1 0]
+v3 = [1 1 1 0 1]
+```
+
+```python
+vectors = Matriu([
+                [0,0,1,0,1],
+                [1,0,0,1,0],
+                [1,1,1,0,1]
+               ])
+solver = LC_Solver()
+lincode = solver.solve(vectors)
+print(lincode.G)
+>>> [1 0 0 1 0]
+    [0 1 0 1 0]
+    [0 0 1 0 1]
+print(lincode.H)
+>>> [1 1 0 1 0]
+[0 0 1 0 1]
+```
+
+### Example 2: computing the parameters of a linear code
+In this example, an instance of Linear Code is created, in which only its canonical generator matrix G is specified, and all parameters will be obtained from it.
+
+The generator matrix is the following:
+```
+G = [1 0 0 1 0 1]
+    [0 1 0 1 0 1]
+    [0 0 1 0 0 1]
+```
+
+```python
+G = Matriu([
+            [1, 0, 0, 1, 0, 1],
+            [0, 1, 0, 1, 0, 1],
+            [0, 0, 1, 0, 0, 1]
+            ])
+solver = LC_Solver()
+lincode = solver.solve(G)
+print(lincode.G)
+>>> [1 0 0 1 0 1]
+    [0 1 0 1 0 1]
+    [0 0 1 0 0 1]
+lincode.parameters()
+>>> Linear Code Parameters:
+    - Code Length (n): 6
+    - Code Dimension (k): 3
+    - Code Size (M): 8
+    - Delta (d): 2
+    - Error Detection: 1
+    - Error Correction: 0
+```
+
+### Example 3: codifying a message
+In this example we will start with a generator matrix G, with which we will find all other parameters of the code and encode a message.
+
+The generator matrix is the following:
+```
+G = [1 0 0 1 1 0 1]
+    [0 1 0 0 1 0 1]
+    [0 0 1 1 0 0 0]
+```
+
+The message to be coded is as follows: `100110100100111011011`.
+
+```python
+G = Matriu([
+            [1, 0, 0, 1, 1, 0, 1],
+            [0, 1, 0, 0, 1, 0, 1],
+            [0, 0, 1, 1, 0, 0, 0]
+            ])
+solver = LC_Solver()
+lincode = solver.solve(G)
+print(lincode.G)
+>>> [1 0 0 1 1 0 1]
+    [0 1 0 0 1 0 1]
+    [0 0 1 1 0 0 0]
+print(lincode.codify("100110100100111011011"))
+>>> 1001101110100010011011001101111000001111010111101
+```
+
+### Example 4: detecting errors plus decodifying
+In this example, a generator matrix G will be used to find all other parameters of the code and decode a message, detecting possible errors.
+
+The generator matrix is the following:
+```
+G = [1 0 0 0 1 1 0]
+    [0 1 0 0 1 0 1]
+    [0 0 1 0 0 1 1]
+    [0 0 0 1 1 1 1]
+```
+
+The message to be decoded is as follows: `10110100101011`.
+
+```python
+G = Matriu([
+            [1, 0, 0, 0, 1, 1, 0],
+            [0, 1, 0, 0, 1, 0, 1],
+            [0, 0, 1, 0, 0, 1, 1],
+            [0, 0, 0, 1, 1, 1, 1]
+            ])
+solver = LC_Solver()
+lincode = solver.solve(G)
+print(lincode.G)
+>>> [1 0 0 0 1 1 0]
+    [0 1 0 0 1 0 1]
+    [0 0 1 0 0 1 1]
+    [0 0 0 1 1 1 1]
+print(lincode.decodify_detect("10110100101011"))
+>>> 1011????
+```
+
+### Example 5: correcting errors plus decodifying
+In this example, the same generator matrix G as before will be used to find all other parameters of the code and decode a message, correcting possible errors.
+
+The generator matrix is the following:
+```
+G = [1 0 0 0 1 1 0]
+    [0 1 0 0 1 0 1]
+    [0 0 1 0 0 1 1]
+    [0 0 0 1 1 1 1]
+```
+
+The message to be decoded is as follows: `10110100101011`.
+
+```python
+G = Matriu([
+            [1, 0, 0, 0, 1, 1, 0],
+            [0, 1, 0, 0, 1, 0, 1],
+            [0, 0, 1, 0, 0, 1, 1],
+            [0, 0, 0, 1, 1, 1, 1]
+            ])
+solver = LC_Solver()
+lincode = solver.solve(G)
+print(lincode.G)
+>>> [1 0 0 0 1 1 0]
+    [0 1 0 0 1 0 1]
+    [0 0 1 0 0 1 1]
+    [0 0 0 1 1 1 1]
+print(lincode.decodify_correct("10110100101011"))
+>>> 10110101
+```
+
