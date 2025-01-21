@@ -691,7 +691,7 @@ To implement this mechanism, a method has been designed to calculate the distanc
   The procedure is as follows:
   1. The number of columns of the `H` matrix is identified from the `shape` attribute of the `Matrix` instance.
   2. Loop the number of times corresponding to the number of columns in the matrix to find out how many columns are being added at any given time.
-  3. Inside the first loop, a second loop is made in which a list is generated with all the combinations of columns from 0 to the number of columns that are grouped at this moment (depending on where the first loop goes). To make the combinations we use the ìtertools` library, specifically, the `combinations()` function. When we get this list of tuples, they are obtained from the `get_columns()` method of `Matrix` and added together.
+  3. Inside the first loop, a second loop is made in which a list is generated with all the combinations of columns from 0 to the number of columns that are grouped at this moment (depending on where the first loop goes). To make the combinations we use the `itertools` library, specifically, the `combinations()` function. When we get this list of tuples, they are obtained from the `get_columns()` method of `Matrix` and added together.
 
   If a sum results in 0, the bulces are stopped and the index through which the first loop goes (corresponding to the number of columns that have been added to obtain 0) is returned. Otherwise, the total number of columns of the matrix plus 1 is returned.
 
@@ -714,7 +714,7 @@ This class also incorporates a method to find a Hamming code. These codes have a
 
 In the case of the parameters, they are calculated as follows:
 * `n = 2^t - 1`.
-* M = 2^n`.
+* `M = 2^n`.
 * `k = n - t` * `M = 2^n` * `k = n - t`
 
 In the case of the control matrix `H`, it consists of a `(n - k) x n` matrix, where the columans correspond to all binary combinations of `t` bits, except the null combination.
