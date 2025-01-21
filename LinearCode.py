@@ -507,12 +507,6 @@ class LC_Solver():
 
         >>> lc_solver = LC_Solver()
         >>> lc = lc_solver.Hamming(2)
-        Utilitzant pivot = 0
-            matrix[1] = matrix[0] + matrix[1]
-        Utilitzant pivot = 1
-            matrix[0] = matrix[1] + matrix[0]
-        Utilitzant pivot = 0
-        Utilitzant pivot = 1
         >>> lc.n
         3
         >>> lc.M
@@ -541,7 +535,7 @@ class LC_Solver():
             lc.H.add_column(Row(column))
 
         # Calculem G, considerant que és el dual
-        lc.G = self.calculate_H(lc.H, True)
+        lc.G = self.calculate_H(lc.H, False)
 
         return lc
 
