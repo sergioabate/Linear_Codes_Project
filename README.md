@@ -130,6 +130,73 @@ It has two attributes:
 * `Matrix.matrix:` a list of `Row` instances representing the matrix
 * `Matrix.shape:` the dimensions of the matrix, represented as a tuple. `Matrix.shape[0]` is the number of rows, whereas  `Matrix.shape[1]` is the number of columns.
 
+An example of using the most common methods (adding, subtracting, multiplying, adding elements, etc.) is as follows:
+
+<details>
+  <summary><b>Matrix examples: </b></summary>
+  <p>
+
+```python
+from Matrix import Matrix
+
+# Create matrix
+m1 = Matriu([[1, 2, 3], [1, 2, 3]])
+m2 = Matriu([[1, 2, 3], [1, 2, 3]])
+
+# Addition
+print(m1 + m2)
+>>> [[2 4 6], [2 4 6]]
+
+# Substraction
+print(m1 - m2)
+>>> [[0 0 0], [0 0 0]]
+
+# Multiplication
+print(m1 * m2)
+>>> [6 12 18]
+    [6 12 18]
+
+# Modulus
+print(m1 % 2)
+>>> [1 0 1]
+
+# Get item
+print(m1[0])
+>>> [1 2 3]
+
+# Set item
+m1[0] = [7, 8, 9]
+print(m1[0])
+>>> [7 8 9]
+
+# Length
+print(len(m1))
+>>> 2
+
+# Equality
+print(Matrix([[1, 2, 3], [1, 2, 3]]) == Matrix([[1, 2, 3], [1, 2, 3]]))
+>>> True
+print(Matrix([[1, 2, 3], [1, 2, 3]]) == Matrix([[1, 2, 3], [1, 2, 1]]))
+>>> False
+
+# Bool
+m1 = [[0, 0, 0], [0, 0, 0]]
+bool(m1)
+>>> False
+m2 = [[2, 0, 0], [0, 0, 0]]
+bool(m1)
+>>> True
+
+# Access and modify elements
+print(r1[1])
+>>> 2
+r1[1] = 10
+print(r1)
+>>> [1 10 3]
+```
+  </p>
+</details>
+
 Apart from the _magic methods_, it also implements other methods to allow for more complex operations:
 <details>
   <summary><b>Matrix.transpose()</b></summary>
@@ -299,7 +366,7 @@ m3.vstack(m4)
 
 <details>
   <summary><b>Matrix.split(rows, columns)</b></summary>
-    Splits the matrix into a submatrix defined by the given row and column slices. 
+    Splits the matrix into a submatrix defined by the given row and column slices.
 
  ```python
 m1 = Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -706,11 +773,8 @@ Most of the examples seen in this documentation have been directly extracted fro
 
 The correct functioning of all methods can be verified running:
 ```shell
-python3 -m doctest Row.py Matrix.py LinearCode.py 
+python3 -m doctest Row.py Matrix.py LinearCode.py
 ```
-
-## Usage
-
 
 ## Examples
 This section shows some examples of implementation to demonstrate how this works.

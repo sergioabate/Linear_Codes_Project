@@ -68,9 +68,9 @@ class Matrix:
         :param other: Another matrix.
         :return: resulting matrix after apply the operation
         >>> m1 = Matrix([[1, 2, 3], [1, 2, 3]])
-        >>> m2 = Matrix([[1, 2, 3], [1, 2, 3]])
-        >>> m1 - m2
-        [[0, 0, 0], [0, 0, 0]]
+        >>> m2 = Matrix([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
+        >>> m1 * m2
+        [[6, 12, 18], [6, 12, 18]]
         """
         # Handle scalar multiplication
         if isinstance(other, (float, int)):
